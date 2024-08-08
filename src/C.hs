@@ -204,9 +204,11 @@ pL f (MT l t (Bin IPlus (Tmp t') e)) | t==t' = pretty t <+> "+=" <+> pretty e <>
 pL f (MT l t e)             = pretty t <+> "=" <+> pretty e <> f l
 pL f (MX l t (FBin FPlus (FTmp t') e)) | t==t' = pretty t <+> "+=" <+> pretty e <> f l
 pL f (MX l t e)             = pretty t <+> "=" <+> pretty e <> f l
+pL f (MX2 l t e)            = pretty t <+> "=" <+> pretty e <> f l
 pL f (MB l t e)             = pretty t <+> "=" <+> pretty e <> f l
 pL f (Wr l a e)             = pretty a <+> "=" <+> pretty e <> f l
 pL f (WrF l a e)            = pretty a <+> "=" <+> pretty e <> f l
+pL f (Wr2F l a e)           = pretty a <+> "=" <+> pretty e <> f l
 pL f (WrP l a e)            = pretty a <+> "=" <+> pretty e <> f l
 pL _ (Free t)               = "free" <+> pretty t
 pL f (Ma l _ t rnk e sz)    = pretty t <+> "=" <+> "malloc" <> parens ("rnk=" <> pretty rnk <> comma <+> pretty e <> "*" <> pretty sz) <> f l

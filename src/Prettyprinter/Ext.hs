@@ -17,6 +17,7 @@ import qualified Data.Text                  as T
 import qualified Data.Text.Lazy             as TL
 import           Data.Text.Lazy.Builder     (toLazyTextWith)
 import           Data.Text.Lazy.Builder.Int (hexadecimal)
+import           Data.Void                  (Void, absurd)
 import           Data.Word                  (Word64)
 import           Prettyprinter              (Doc, LayoutOptions (..), PageWidth (AvailablePerLine), Pretty (..), SimpleDocStream, concatWith, encloseSep, flatAlt, group, hardline,
                                              indent, layoutSmart, parens, softline', space, vsep, (<+>))
@@ -34,6 +35,9 @@ infixr 5 <!>
 class PS a where ps :: Int -> a -> Doc ann
 
 appPrec=10::Int
+
+instance PS Void where
+    ps _ = absurd
 
 parensp True=parens; parensp False=id
 

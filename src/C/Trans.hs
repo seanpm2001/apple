@@ -172,6 +172,18 @@ nz (StaPlus _ i0 i1) = nz i0 || nz i1 -- no negative dims
 nz (StaMul _ i0 i1) = nz i0 && nz i1
 nz _ = False
 
+ipe :: I a -> Bool
+ipe (Ix _ i)          = i > 0 && even i
+ipe (StaPlus _ i0 i1) = ipe i0&&ipe i1||ipo i0&&ipo i1
+ipe (StaMul _ i0 i1)  = ipe i0 || ipe i1
+ipe _                 = False
+
+ipo :: I a -> Bool
+ipo (Ix _ i)          = odd i
+ipo (StaPlus _ i0 i1) = ipe i0&&ipo i1||ipo i0&&ipe i1
+ipo (StaMul _ i0 i1)  = ipo i0 && ipo i1
+ipo _                 = False
+
 nzSh :: Sh a -> Bool
 nzSh (i `Cons` Nil) = nz i
 nzSh (i `Cons` sh)  = nz i && nzSh sh
@@ -186,6 +198,13 @@ ne, n1 :: T a -> Bool
 ne (Arr (i `Cons` _) _) = nz i; ne _=False
 n1 (Arr (i `Cons` _) _) = ni1 i; n1 _=False
 nec (Arr (_ `Cons` i `Cons` _) _) = nz i; nec _=False
+
+te, to :: T a -> Bool
+te (Arr (i `Cons` _) _) = ipe i
+te _                    = False
+
+to (Arr (i `Cons` _) _) = ipo i
+to _                    = False
 
 nee :: T a -> Bool
 nee (Arr sh _) = nzSh sh; nee _=False
