@@ -1,15 +1,18 @@
-{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Asm.Aarch64 ( AArch64 (..)
                    , Addr (..)
                    , Cond (..)
                    , Shift (..), BM (..)
-                   , AbsReg (..), FAbsReg (..), F2Abs (..)
-                   , AReg (..), FAReg (..), F2Reg (..)
-                   , SIMD (..), simd2
+                   , AbsReg (..), FAbsReg (..), F2Abs
+                   , AReg (..), FAReg (..), V2Reg (..)
+                   , SIMD (..)
                    , prettyDebug
-                   , mapR, mapFR, mapF2
-                   , toInt, fToInt, f2ToInt
+                   , mapR, mapFR
+                   , toInt, fToInt
                    , pus, pos
                    , puds, pods
                    , pSym
@@ -37,9 +40,6 @@ instance Pretty AReg where
 
 instance Show AReg where show = show.pretty
 
-simd2 :: FAReg -> F2Reg
-simd2 = toEnum.fromEnum
-
 data FAReg = D0 | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 | D10 | D11 | D12 | D13 | D14 | D15 | D16 | D17 | D18 | D19 | D20 | D21 | D22 | D23 | D24 | D25 | D26 | D27 | D28 | D29 | D30 | D31 deriving (Eq, Ord, Enum, Generic)
 
 instance Pretty FAReg where
@@ -50,26 +50,25 @@ instance Pretty FAReg where
 
 instance Show FAReg where show=show.pretty
 
-data F2Reg = V0 | V1 | V2 | V3 | V4 | V5 | V6 | V7 | V8 | V9 | V10 | V11 | V12 | V13 | V14 | V15 | V16 | V17 | V18 | V19 | V20 | V21 | V22 | V23 | V24 | V25 | V26 | V27 | V28 | V29 | V30 | V31 deriving (Eq, Ord, Enum, Generic)
+newtype V2Reg a = V2Reg { simd2 :: a } deriving (Eq, Ord, Enum, NFData, Functor)
 
 class SIMD a where
     pv :: a -> Doc ann
     pq :: a -> Doc ann
 
-instance SIMD F2Reg where
-    pv V0 = "v0"; pv V1 = "v1"; pv V2 = "v2"; pv V3 = "v3"; pv V4 = "v4"; pv V5 = "v5"; pv V6 = "v6"; pv V7 = "v7"
-    pv V8 = "v8"; pv V9 = "v9"; pv V10 = "v10"; pv V11 = "v11"; pv V12 = "v12"; pv V13 = "v13"; pv V14 = "v14"; pv V15 = "v15"
-    pv V16 = "v16"; pv V17 = "v17"; pv V18 = "v18"; pv V19 = "v19"; pv V20 = "v20"; pv V21 = "v21"; pv V22 = "v22"; pv V23 = "v23"
-    pv V24 = "v24"; pv V25 = "v25"; pv V26 = "v26"; pv V27 = "v27"; pv V28 = "v28"; pv V29 = "v29"; pv V30 = "v30"; pv V31 = "v31"
+instance SIMD (V2Reg FAReg) where
+    pv (V2Reg D0) = "v0"; pv (V2Reg D1) = "v1"; pv (V2Reg D2) = "v2"; pv (V2Reg D3) = "v3"; pv (V2Reg D4) = "v4"; pv (V2Reg D5) = "v5"; pv (V2Reg D6) = "v6"; pv (V2Reg D7) = "v7"
+    pv (V2Reg D8) = "v8"; pv (V2Reg D9) = "v9"; pv (V2Reg D10) = "v10"; pv (V2Reg D11) = "v11"; pv (V2Reg D12) = "v12"; pv (V2Reg D13) = "v13"; pv (V2Reg D14) = "v14"; pv (V2Reg D15) = "v15"
+    pv (V2Reg D16) = "v16"; pv (V2Reg D17) = "v17"; pv (V2Reg D18) = "v18"; pv (V2Reg D19) = "v19"; pv (V2Reg D20) = "v20"; pv (V2Reg D21) = "v21"; pv (V2Reg D22) = "v22"; pv (V2Reg D23) = "v23"
+    pv (V2Reg D24) = "v24"; pv (V2Reg D25) = "v25"; pv (V2Reg D26) = "v26"; pv (V2Reg D27) = "v27"; pv (V2Reg D28) = "v28"; pv (V2Reg D29) = "v29"; pv (V2Reg D30) = "v30"; pv (V2Reg D31) = "v31"
 
-    pq V0 = "q0"; pq V1 = "q1"; pq V2 = "q2"; pq V3 = "q3"; pq V4 = "q4"; pq V5 = "q5"; pq V6 = "q6"; pq V7 = "q7"
-    pq V8 = "q8"; pq V9 = "q9"; pq V10 = "q10"; pq V11 = "q11"; pq V12 = "q12"; pq V13 = "q13"; pq V14 = "q14"; pq V15 = "q15"
-    pq V16 = "q16"; pq V17 = "q17"; pq V18 = "q18"; pq V19 = "q19"; pq V20 = "q20"; pq V21 = "q21"; pq V22 = "q22"; pq V23 = "q23"
-    pq V24 = "q24"; pq V25 = "q25"; pq V26 = "q26"; pq V27 = "q27"; pq V28 = "q28"; pq V29 = "q29"; pq V30 = "q30"; pq V31 = "q31"
+    pq (V2Reg D0) = "q0"; pq (V2Reg D1) = "q1"; pq (V2Reg D2) = "q2"; pq (V2Reg D3) = "q3"; pq (V2Reg D4) = "q4"; pq (V2Reg D5) = "q5"; pq (V2Reg D6) = "q6"; pq (V2Reg D7) = "q7"
+    pq (V2Reg D8) = "q8"; pq (V2Reg D9) = "q9"; pq (V2Reg D10) = "q10"; pq (V2Reg D11) = "q11"; pq (V2Reg D12) = "q12"; pq (V2Reg D13) = "q13"; pq (V2Reg D14) = "q14"; pq (V2Reg D15) = "q15"
+    pq (V2Reg D16) = "q16"; pq (V2Reg D17) = "q17"; pq (V2Reg D18) = "q18"; pq (V2Reg D19) = "q19"; pq (V2Reg D20) = "q20"; pq (V2Reg D21) = "q21"; pq (V2Reg D22) = "q22"; pq (V2Reg D23) = "q23"
+    pq (V2Reg D24) = "q24"; pq (V2Reg D25) = "q25"; pq (V2Reg D26) = "q26"; pq (V2Reg D27) = "q27"; pq (V2Reg D28) = "q28"; pq (V2Reg D29) = "q29"; pq (V2Reg D30) = "q30"; pq (V2Reg D31) = "q31"
 
 instance NFData AReg where
 instance NFData FAReg where
-instance NFData F2Reg where
 
 data AbsReg = IReg !Int | CArg0 | CArg1 | CArg2 | CArg3 | CArg4 | CArg5 | CArg6 | CArg7 | LR | FP | ASP
 -- r0-r7 used for return values as well
@@ -88,9 +87,9 @@ instance Pretty AbsReg where
     pretty CArg7    = "X7"
     pretty FP       = "FP"
 
-data F2Abs = F2Reg !Int
+type F2Abs = V2Reg FAbsReg
 
-instance SIMD F2Abs where pq (F2Reg i) = "~Q" <> pretty i; pv (F2Reg i) = "~V" <> pretty i
+instance SIMD F2Abs where pq (V2Reg (FReg i)) = "~Q" <> pretty i; pv (V2Reg (FReg i)) = "~V" <> pretty i
 
 data FAbsReg = FReg !Int | FArg0 | FArg1 | FArg2 | FArg3 | FArg4 | FArg5 | FArg6 | FArg7
 
@@ -130,9 +129,6 @@ fToInt FArg6    = 16
 fToInt FArg7    = 17
 fToInt (FReg i) = 19+i
 
-f2ToInt :: F2Abs -> Int
-f2ToInt (F2Reg i) = 19+i
-
 data Shift = Zero | Three
 
 instance NFData Shift where rnf Zero = (); rnf Three = ()
@@ -171,7 +167,7 @@ pSym :: Pretty a => a -> Doc ann
 pSym = case os of {"linux" -> id; "darwin" -> ("_"<>)}.pretty
 
 -- https://developer.arm.com/documentation/ddi0596/2020-12/Base-Instructions
-data AArch64 reg freg f2 a = Label { ann :: a, label :: Label }
+data AArch64 reg freg a = Label { ann :: a, label :: Label }
                          | B { ann :: a, label :: Label }
                          | Blr { ann :: a, rSrc :: reg }
                          | C { ann :: a, label :: Label }
@@ -225,8 +221,8 @@ data AArch64 reg freg f2 a = Label { ann :: a, label :: Label }
                          | Fcvtas { ann :: a, rDest :: reg, dSrc :: freg }
                          | Stp { ann :: a, rSrc1, rSrc2 :: reg, aDest :: Addr reg }
                          | Ldp { ann :: a, rDest1, rDest2 :: reg, aSrc :: Addr reg }
-                         | Stp2 { ann :: a, r2Src1, r2Src2 :: f2, aDest :: Addr reg }
-                         | Ldp2 { ann :: a, r2Dest1, r2Dest2 :: f2, aRc :: Addr reg }
+                         | Stp2 { ann :: a, r2Src1, r2Src2 :: (V2Reg freg), aDest :: Addr reg }
+                         | Ldp2 { ann :: a, r2Dest1, r2Dest2 :: (V2Reg freg), aRc :: Addr reg }
                          | StpD { ann :: a, dSrc1, dSrc2 :: freg, aDest :: Addr reg }
                          | LdpD { ann :: a, dDest1, dDest2 :: freg, aSrc :: Addr reg }
                          | Fmadd { ann :: a, dDest, dSrc1, dSrc2, dSrc3 :: freg }
@@ -249,11 +245,11 @@ data AArch64 reg freg f2 a = Label { ann :: a, label :: Label }
                          | Bfc { ann :: a, rDest :: reg, lsb :: Word8, width :: Word8 }
                          deriving (Functor, Generic)
 
-instance (NFData r, NFData d, NFData x, NFData a) => NFData (AArch64 r d x a) where
+instance (NFData r, NFData d, NFData a) => NFData (AArch64 r d a) where
 
-instance Copointed (AArch64 reg freg f2) where copoint = ann
+instance Copointed (AArch64 reg freg) where copoint = ann
 
-mapR :: (areg -> reg) -> AArch64 areg afreg af2 a -> AArch64 reg afreg af2 a
+mapR :: (areg -> reg) -> AArch64 areg afreg a -> AArch64 reg afreg a
 mapR _ (Label x l)           = Label x l
 mapR _ (B x l)               = B x l
 mapR _ (Bc x c l)            = Bc x c l
@@ -332,86 +328,7 @@ mapR f (Ldp2 l r0 r1 a)      = Ldp2 l r0 r1 (f<$>a)
 mapR f (Stp2 l r0 r1 a)      = Stp2 l r0 r1 (f<$>a)
 mapR f (Bfc x r l w)         = Bfc x (f r) l w
 
-mapF2 :: (af2 -> f2) -> AArch64 areg afreg af2 a -> AArch64 areg afreg f2 a
-mapF2 _ (Label x l)           = Label x l
-mapF2 _ (B x l)               = B x l
-mapF2 _ (Bc x c l)            = Bc x c l
-mapF2 _ (Bl x f)              = Bl x f
-mapF2 _ (C x l)               = C x l
-mapF2 _ (FMovXX l xr0 xr1)    = FMovXX l xr0 xr1
-mapF2 _ (MovRR l r0 r1)       = MovRR l r0 r1
-mapF2 _ (MovRC l r0 c)        = MovRC l r0 c
-mapF2 _ (Ldr l r a)           = Ldr l r a
-mapF2 _ (LdrB l r a)          = LdrB l r a
-mapF2 _ (Str l r a)           = Str l r a
-mapF2 _ (StrB l r a)          = StrB l r a
-mapF2 _ (LdrD l xr a)         = LdrD l xr a
-mapF2 _ (AddRR l r0 r1 r2)    = AddRR l r0 r1 r2
-mapF2 _ (AddRRS l r0 r1 r2 s) = AddRRS l r0 r1 r2 s
-mapF2 _ (AddRC l r0 r1 c)     = AddRC l r0 r1 c
-mapF2 _ (SubRR l r0 r1 r2)    = SubRR l r0 r1 r2
-mapF2 _ (SubRC l r0 r1 c)     = SubRC l r0 r1 c
-mapF2 _ (SubsRC l r0 r1 c)    = SubsRC l r0 r1 c
-mapF2 _ (ZeroR l r)           = ZeroR l r
-mapF2 _ (Mvn l r0 r1)         = Mvn l r0 r1
-mapF2 _ (AndRR l r0 r1 r2)    = AndRR l r0 r1 r2
-mapF2 _ (OrRR l r0 r1 r2)     = OrRR l r0 r1 r2
-mapF2 _ (Eor l r0 r1 r2)      = Eor l r0 r1 r2
-mapF2 _ (Eon l r0 r1 r2)      = Eon l r0 r1 r2
-mapF2 _ (EorI l r0 r1 i)      = EorI l r0 r1 i
-mapF2 _ (Lsl l r0 r1 s)       = Lsl l r0 r1 s
-mapF2 _ (Asr l r0 r1 s)       = Asr l r0 r1 s
-mapF2 _ (CmpRC l r c)         = CmpRC l r c
-mapF2 _ (CmpRR l r0 r1)       = CmpRR l r0 r1
-mapF2 _ (Neg l r0 r1)         = Neg l r0 r1
-mapF2 _ (Fmul l xr0 xr1 xr2)  = Fmul l xr0 xr1 xr2
-mapF2 _ (Fadd l xr0 xr1 xr2)  = Fadd l xr0 xr1 xr2
-mapF2 _ (Fsub l xr0 xr1 xr2)  = Fsub l xr0 xr1 xr2
-mapF2 _ (FcmpZ l xr)          = FcmpZ l xr
-mapF2 _ (Ret l)               = Ret l
-mapF2 _ (RetL x l)            = RetL x l
-mapF2 _ (Fdiv l d0 d1 d2)     = Fdiv l d0 d1 d2
-mapF2 _ (MulRR l r0 r1 r2)    = MulRR l r0 r1 r2
-mapF2 _ (Madd l r0 r1 r2 r3)  = Madd l r0 r1 r2 r3
-mapF2 _ (Msub l r0 r1 r2 r3)  = Msub l r0 r1 r2 r3
-mapF2 _ (Sdiv l r0 r1 r2)     = Sdiv l r0 r1 r2
-mapF2 _ (StrD l d a)          = StrD l d a
-mapF2 _ (Scvtf l d r)         = Scvtf l d r
-mapF2 _ (Fcvtms l r d)        = Fcvtms l r d
-mapF2 _ (Fcvtas l r d)        = Fcvtas l r d
-mapF2 _ (MovK l r u s)        = MovK l r u s
-mapF2 _ (MovZ l r u s)        = MovZ l r u s
-mapF2 _ (FMovDR l d r)        = FMovDR l d r
-mapF2 _ (Fcmp l d0 d1)        = Fcmp l d0 d1
-mapF2 _ (Stp l r0 r1 a)       = Stp l r0 r1 a
-mapF2 _ (Ldp l r0 r1 a)       = Ldp l r0 r1 a
-mapF2 _ (StpD l d0 d1 a)      = StpD l d0 d1 a
-mapF2 _ (LdpD l d0 d1 a)      = LdpD l d0 d1 a
-mapF2 _ (Fmadd l d0 d1 d2 d3) = Fmadd l d0 d1 d2 d3
-mapF2 _ (Fmsub l d0 d1 d2 d3) = Fmsub l d0 d1 d2 d3
-mapF2 _ (Fsqrt l d0 d1)       = Fsqrt l d0 d1
-mapF2 _ (Fneg l d0 d1)        = Fneg l d0 d1
-mapF2 _ (Frintm l d0 d1)      = Frintm l d0 d1
-mapF2 _ (MrsR l r)            = MrsR l r
-mapF2 _ (Blr l r)             = Blr l r
-mapF2 _ (MovRCf l r cf)       = MovRCf l r cf
-mapF2 _ (LdrRL x r l)         = LdrRL x r l
-mapF2 _ (Fmax l d0 d1 d2)     = Fmax l d0 d1 d2
-mapF2 _ (Fmin l d0 d1 d2)     = Fmin l d0 d1 d2
-mapF2 _ (Fabs l d0 d1)        = Fabs l d0 d1
-mapF2 _ (Csel l r0 r1 r2 p)   = Csel l r0 r1 r2 p
-mapF2 _ (Tbnz l r n p)        = Tbnz l r n p
-mapF2 _ (Tbz l r n p)         = Tbz l r n p
-mapF2 _ (Cbnz x r l)          = Cbnz x r l
-mapF2 _ (Cbz x r l)           = Cbz x r l
-mapF2 _ (Fcsel l d0 d1 d2 p)  = Fcsel l d0 d1 d2 p
-mapF2 _ (TstI l r i)          = TstI l r i
-mapF2 _ (Cset l r c)          = Cset l r c
-mapF2 f (Ldp2 l r0 r1 a)      = Ldp2 l (f r0) (f r1) a
-mapF2 f (Stp2 l r0 r1 a)      = Stp2 l (f r0) (f r1) a
-mapF2 _ (Bfc x r l w)         = Bfc x r l w
-
-mapFR :: (afreg -> freg) -> AArch64 areg afreg af2 a -> AArch64 areg freg af2 a
+mapFR :: (afreg -> freg) -> AArch64 areg afreg a -> AArch64 areg freg a
 mapFR _ (Label x l)           = Label x l
 mapFR _ (B x l)               = B x l
 mapFR _ (Bc x c l)            = Bc x c l
@@ -486,8 +403,8 @@ mapFR _ (Cbz x r l)           = Cbz x r l
 mapFR f (Fcsel l d0 d1 d2 p)  = Fcsel l (f d0) (f d1) (f d2) p
 mapFR _ (TstI l r i)          = TstI l r i
 mapFR _ (Cset l r c)          = Cset l r c
-mapFR _ (Ldp2 l q0 q1 a)      = Ldp2 l q0 q1 a
-mapFR _ (Stp2 l q0 q1 a)      = Stp2 l q0 q1 a
+mapFR f (Ldp2 l q0 q1 a)      = Ldp2 l (f<$>q0) (f<$>q1) a
+mapFR f (Stp2 l q0 q1 a)      = Stp2 l (f<$>q0) (f<$>q1) a
 mapFR _ (Bfc x r l w)         = Bfc x r l w
 
 s2 :: [a] -> [(a, Maybe a)]
@@ -501,13 +418,13 @@ offs = scanl' (\i _ -> i+16) 0
 rsOffs :: [a] -> ([(a, Maybe a)], [Word16], Word16)
 rsOffs rs = let ixs=offs rs in (s2 rs, ixs, last ixs)
 
-pus, pos :: [AReg] -> [AArch64 AReg freg f2reg ()]
+pus, pos :: [AReg] -> [AArch64 AReg freg ()]
 pus rs = let (pps, ixs, r) = rsOffs rs in SubRC () SP SP r:concat (zipWith go pps ixs)
   where go (r0, Just r1) ix = [Stp () r0 r1 (RP SP ix)]; go (r, Nothing) ix = [Str () r (RP SP ix)]
 pos rs = let (pps, ixs, r) = rsOffs rs in concat (zipWith go pps ixs)++[AddRC () SP SP r]
   where go (r0, Just r1) ix = [Ldp () r0 r1 (RP SP ix)]; go (r, Nothing) ix = [Ldr () r (RP SP ix)]
 
-puds, pods :: [freg] -> [AArch64 AReg freg f2reg ()]
+puds, pods :: [freg] -> [AArch64 AReg freg ()]
 puds rs = let (pps, ixs, r) = rsOffs rs in SubRC () SP SP r:concat (zipWith go pps ixs)
   where go (r0, Just r1) ix = [StpD () r0 r1 (RP SP ix)]; go (r, Nothing) ix = [StrD () r (RP SP ix)]
 pods rs = let (pps, ixs, r) = rsOffs rs in concat (zipWith go pps ixs)++[AddRC () SP SP r]
@@ -516,7 +433,10 @@ pods rs = let (pps, ixs, r) = rsOffs rs in concat (zipWith go pps ixs)++[AddRC (
 hexd :: Integral a => a -> Doc ann
 hexd = pretty.($"").(("#0x"++).).showHex
 
-instance (Pretty reg, Pretty freg, SIMD f2reg) => Pretty (AArch64 reg freg f2reg a) where
+pvd v = pv v <> ".2d"
+pvv v = pv v <> ".16b"
+
+instance (Pretty reg, Pretty freg, SIMD (V2Reg freg)) => Pretty (AArch64 reg freg a) where
     pretty (Label _ l)            = prettyLabel l <> ":"
     pretty isn = i4 (p4 isn)
       where
@@ -598,10 +518,10 @@ instance (Pretty reg, Pretty freg, SIMD f2reg) => Pretty (AArch64 reg freg f2reg
         p4 (Bfc _ r l w)          = "bfc" <+> pretty r <> "," <+> pretty l <> "," <+> pretty w
         p4 Label{}                = error "shouldn't happen."
 
-instance (Pretty reg, Pretty freg, SIMD f2reg) => Show (AArch64 reg freg f2reg a) where show=show.pretty
+instance (Pretty reg, Pretty freg, SIMD (V2Reg freg)) => Show (AArch64 reg freg a) where show=show.pretty
 
-prettyLive :: (Pretty reg, Pretty freg, SIMD f2reg, Pretty o) => AArch64 reg freg f2reg o -> Doc ann
+prettyLive :: (Pretty reg, Pretty freg, SIMD (V2Reg freg), Pretty o) => AArch64 reg freg o -> Doc ann
 prettyLive r = pretty r <+> pretty (ann r)
 
-prettyDebug :: (Pretty freg, Pretty reg, SIMD f2reg, Pretty o) => [AArch64 reg freg f2reg o] -> Doc ann
+prettyDebug :: (Pretty freg, Pretty reg, SIMD (V2Reg freg), Pretty o) => [AArch64 reg freg o] -> Doc ann
 prettyDebug = prettyLines . fmap prettyLive

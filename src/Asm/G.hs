@@ -81,8 +81,8 @@ builds bs = thread [ \s -> snd $ build (out (snd3 (copoint (last isns)))) s (rev
 buildsF :: Copointed p => [[p (UD, Liveness, Maybe M)]] -> St -> St
 buildsF bs = thread [ \s -> snd $ buildF (fout (snd3 (copoint (last isns)))) s (reverse isns) | isns <- bs ]
 
-alloc :: (Ord reg, Arch arch areg afreg af2, Copointed (arch areg afreg af2))
-      => [arch areg afreg af2 (UD, Liveness, Maybe (Int,Int))]
+alloc :: (Ord reg, Arch arch areg afreg, Copointed (arch areg afreg))
+      => [arch areg afreg (UD, Liveness, Maybe (Int,Int))]
       -> [reg] -- ^ available registers
       -> IS.IntSet -- ^ Precolored @areg@
       -> IM.IntMap reg -- ^ Precolored map
@@ -96,8 +96,8 @@ alloc aIsns regs preC preCM =
     in if IS.null s then Right rs else Left s
     where nIsns = fmap snd3 <$> aIsns; ᴋ = length regs
 
-allocF :: (Ord freg, Arch arch areg afreg af2, Copointed (arch areg afreg af2))
-       => [arch areg afreg af2 (UD, Liveness, Maybe (Int,Int))]
+allocF :: (Ord freg, Arch arch areg afreg, Copointed (arch areg afreg))
+       => [arch areg afreg (UD, Liveness, Maybe (Int,Int))]
        -> [freg] -- ^ available registers
        -> IS.IntSet -- ^ Precolored @afreg@
        -> IM.IntMap freg -- ^ Precolored map
