@@ -21,6 +21,7 @@ module Asm.Aarch64 ( AArch64 (..)
 import           Asm.M
 import           Control.DeepSeq   (NFData (..))
 import           Data.Copointed
+import           Data.Int          (Int16)
 import           Data.List         (scanl')
 import           Data.Word         (Word16, Word8)
 import           GHC.Generics      (Generic)
@@ -144,16 +145,20 @@ instance NFData BM where rnf (BM i ls) = rnf i `seq` rnf ls
 instance Pretty BM where
     pretty (BM m l) = "0b" <> pretty (replicate (fromIntegral m) '1' ++ replicate (fromIntegral l) '0')
 
-data Addr reg = R reg | RP reg Word16 | BI reg reg Shift deriving (Functor, Generic)
+data Addr reg = R reg | RP reg Word16 | BI reg reg Shift | Po reg Int16 | Pr reg Int16 deriving (Functor, Generic)
 
 instance NFData a => NFData (Addr a) where
 
 instance Pretty reg => Pretty (Addr reg) where
-    pretty = brackets.pa where
-        pa (R r)      = pretty r
-        pa (RP r 0)   = pretty r
-        pa (RP r u)   = pretty r <> "," <+> hexd u
-        pa (BI b i s) = pretty b <> "," <+> pretty i <> "," <+> "LSL" <+> pretty s
+    pretty (Po r 0)      = brackets (pretty r)
+    pretty (Po r u)      = brackets (pretty r) <> "," <+> hexd u
+    pretty (Pr r 0)      = brackets (pretty r)
+    pretty (Pr r u)      = brackets (pretty r <> "," <+> hexd u) <> "!"
+    pretty (R r)         = brackets (pretty r)
+    pretty (RP r 0)      = brackets (pretty r)
+    pretty (RP r u)      = brackets (pretty r <> "," <+> hexd u)
+    pretty (BI b i Zero) = brackets (pretty b <> "," <+> pretty i)
+    pretty (BI b i s)    = brackets (pretty b <> "," <+> pretty i <> "," <+> "LSL" <+> pretty s)
 
 data Cond = Eq | Neq | Geq | Lt | Gt | Leq
 
@@ -431,7 +436,8 @@ pods rs = let (pps, ixs, r) = rsOffs rs in concat (zipWith go pps ixs)++[AddRC (
   where go (r0, Just r1) ix = [LdpD () r0 r1 (RP SP ix)]; go (r, Nothing) ix = [LdrD () r (RP SP ix)]
 
 hexd :: Integral a => a -> Doc ann
-hexd = pretty.($"").(("#0x"++).).showHex
+hexd n | n < 0 = pretty ("#-0x"++(showHex (-n)$""))
+       | otherwise = pretty ("#0x"++(showHex n$""))
 
 pvd v = pv v <> ".2d"
 pvv v = pv v <> ".16b"
