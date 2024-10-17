@@ -426,8 +426,8 @@ puds = map go.s2 where go (r0, Just r1) = StpD () r0 r1 (Pr SP (-16)); go (r, No
 pods = map go.reverse.s2 where go (r0, Just r1) = LdpD () r0 r1 (Po SP 16); go (r, Nothing) = LdrD () r (Po SP 16)
 
 hexd :: Integral a => a -> Doc ann
-hexd n | n < 0 = pretty ("#-0x"++(showHex (-n)$""))
-       | otherwise = pretty ("#0x"++(showHex n$""))
+hexd n | n < 0 = pretty ("#-0x"++showHex (-n) "")
+       | otherwise = pretty ("#0x"++showHex n "")
 
 pvd v = pv v <> ".2d"
 pvv v = pv v <> ".16b"
