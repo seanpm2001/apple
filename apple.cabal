@@ -156,12 +156,6 @@ library
         composition-prelude >=1.1.0.1,
         dom-lt
 
-    if impl(ghc >=8.10)
-        ghc-options: -Wunused-packages
-
-    if impl(ghc >=9.2)
-        ghc-options: -Wno-operator-whitespace-ext-conflict
-
 library as
     import: warn
     exposed-modules:
@@ -178,9 +172,6 @@ library as
         prettyprinter,
         text,
         bytestring
-
-    if impl(ghc >=8.10)
-        ghc-options: -Wunused-packages
 
 foreign-library apple
     import:             warn
@@ -205,9 +196,6 @@ foreign-library apple
     if os(windows)
         options: standalone
 
-    if impl(ghc >=8.10)
-        ghc-options: -Wunused-packages
-
 executable atc
     import:           warn
     main-is:          Main.hs
@@ -221,9 +209,6 @@ executable atc
         optparse-applicative >=0.13.0.0,
         bytestring
 
-    if impl(ghc >=8.10)
-        ghc-options: -Wunused-packages
-
 executable writeo
     import:           warn
     main-is:          Main.hs
@@ -236,9 +221,6 @@ executable writeo
         as,
         optparse-applicative >=0.14.0.0,
         text
-
-    if impl(ghc >=8.10)
-        ghc-options: -Wunused-packages
 
 executable arepl
     import:           warn
@@ -264,9 +246,6 @@ executable arepl
         containers,
         split >=0.2.0.0
 
-    if impl(ghc >=8.10)
-        ghc-options: -Wunused-packages
-
 test-suite apple-test
     import:             warn
     type:               exitcode-stdio-1.0
@@ -284,9 +263,6 @@ test-suite apple-test
         fast-arithmetic,
         QuickCheck,
         tasty-quickcheck
-
-    if impl(ghc >=8.10)
-        ghc-options: -Wunused-packages
 
 test-suite apple-o
     import:           warn
@@ -306,9 +282,6 @@ test-suite apple-o
         filepath,
         directory
 
-    if impl(ghc >=8.10)
-        ghc-options: -Wunused-packages
-
 benchmark apple-bench
     import:             warn
     type:               exitcode-stdio-1.0
@@ -325,6 +298,3 @@ benchmark apple-bench
         erf,
         hypergeometric >=0.1.2.0,
         deepseq
-
-    if impl(ghc >=8.10)
-        ghc-options: -Wunused-packages
