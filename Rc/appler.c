@@ -16,7 +16,8 @@
 // http://adv-r.had.co.nz/C-interface.html
 
 #define ERR(p,msg){if(p==NULL){SEXP er=mkString(msg);free(msg);R er;};}
-#define DA(n,x,rnk,t,ra) J* i_p=x;J rnk=i_p[0];SEXP ds=PROTECT(allocVector(INTSXP,(int)rnk));J n=1;DO(i,rnk,n*=i_p[i+1];INTEGER(ds)[i]=(int)i_p[i+1]);SEXP ra=PROTECT(allocArray(t,ds));
+#define E(msg){SEXP er=mkString(msg);R er;}
+#define An(x,n,t,ra) J* i_p=x;J n=i_p[1];SEXP ra=PROTECT(allocVector(t,n));
 
 #define ZR static SEXP
 
@@ -28,19 +29,20 @@ Z void clear(SEXP jit) {
     free(c->sa);free(c->ffi);freety(c->ty);
 }
 
-// FIXME: column-major order
-ZR rf(U x) {DA(n,x,rnk,REALSXP,r);F* x_f=x;memcpy(REAL(r),x_f+rnk+1,n*8);UNPROTECT(2);R r;}
-ZR ri(U x) {DA(n,x,rnk,INTSXP,r);DO(i,n,INTEGER(r)[i]=(int)i_p[i+rnk+1]);UNPROTECT(2);R r;}
-ZR rb(U x) {DA(n,x,rnk,LGLSXP,r);B* b_p=x+8*rnk+8;DO(i,n,LOGICAL(r)[i]=(int)b_p[i]);UNPROTECT(2);R r;}
+ZR rfv(U x) {An(x,n,REALSXP,r);F* x_f=x;memcpy(REAL(r),x_f+2,n*8);UNPROTECT(1);R r;}
+ZR ri(U x) {An(x,n,INTSXP,r);DO(i,n,INTEGER(r)[i]=(int)i_p[i+2]);UNPROTECT(1);R r;}
+ZR rb(U x) {An(x,n,LGLSXP,r);B* b_p=x+16;DO(i,n,LOGICAL(r)[i]=(int)b_p[i]);UNPROTECT(1);R r;}
 
 // vector only
-ZU frv(SEXP x) {J dim=length(x);V(dim,REAL(x),ret);R ret;}
+ZU frv(SEXP x) {J dim=length(x);double* d=REAL(x);V(dim,d,ret);R ret;}
 ZU fi(SEXP x) {J dim=length(x);J* ret=R_alloc(8,dim+2);J rnk=1;ret[0]=rnk;ret[1]=dim;DO(i,dim,ret[i+2]=(J)(INTEGER(x)[i]));R ret;}
 ZU fb(SEXP x) {J dim=length(x);B* ret=R_alloc(1,dim+16);J* i_p=(J*)ret;J rnk=1;i_p[0]=rnk;i_p[1]=dim;DO(i,dim,ret[i+16]=(B)(LOGICAL(x)[i]));R ret;}
 
-ZU fra(SEXP a) {int* ds=INTEGER(getAttrib(a,R_DimSymbol));J m=ds[0];J n=ds[1];U x=malloc(24+m*n*8);J* x_i=x;x_i[0]=2;x_i[1]=m;x_i[2]=n;F* x_f=x;DO(i,m,(DO(j,n,x_f[i*n+j+3]=REAL(a)[j*m+i])));R x;}
+ZU frm(SEXP a) {int* ds=INTEGER(getAttrib(a,R_DimSymbol));J m=ds[0];J n=ds[1];U x=malloc(24+m*n*8);J* x_i=x;x_i[0]=2;x_i[1]=m;x_i[2]=n;F* x_f=x;double* d=REAL(a);DO(i,m,(DO(j,n,x_f[i*n+j+3]=d[j*m+i])));R x;}
+ZR rfm(U x) {J* i_p=x;J m=i_p[1],n=i_p[2];F* x_f=x;SEXP r=PROTECT(allocMatrix(REALSXP,m,n));double* d=REAL(r);DO(i,m,DO(j,n,d[j*m+i]=x_f[i*n+j+3]));UNPROTECT(1);R r;}
 
-ZU fr(SEXP a){if(Rf_isMatrix(a)){R fra(a);}else if (Rf_isVector(a)){R frv(a);}}
+ZU fr(SEXP a){if(Rf_isMatrix(a)){R frm(a);}else if (Rf_isVector(a)){R frv(a);}else E("Higher-rank arguments not supported.")}
+ZR rf(U x){J* x_i=x;J rnk=x_i[0];if(rnk==1){R rfv(x);}else if(rnk==2){R rfm(x);}else E("Higher-rank return values are not supported.")}
 
 SEXP hs_init_R(void) {
     hs_init(0,0);
