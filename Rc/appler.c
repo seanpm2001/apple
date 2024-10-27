@@ -20,6 +20,7 @@
 #define An(x,n,t,ra) J* i_p=x;J n=i_p[1];SEXP ra=PROTECT(allocVector(t,n));
 
 #define ZR static SEXP
+#define $(p,a) if(p){R a;}else
 
 TS AppleC {U code;S code_sz;FnTy* ty;U sa;ffi_cif* ffi;} AppleC;
 
@@ -30,19 +31,25 @@ Z void clear(SEXP jit) {
 }
 
 ZR rfv(U x) {An(x,n,REALSXP,r);F* x_f=x;memcpy(REAL(r),x_f+2,n*8);UNPROTECT(1);R r;}
-ZR ri(U x) {An(x,n,INTSXP,r);DO(i,n,INTEGER(r)[i]=(int)i_p[i+2]);UNPROTECT(1);R r;}
-ZR rb(U x) {An(x,n,LGLSXP,r);B* b_p=x+16;DO(i,n,LOGICAL(r)[i]=(int)b_p[i]);UNPROTECT(1);R r;}
+ZR riv(U x) {An(x,n,INTSXP,r);DO(i,n,INTEGER(r)[i]=(int)i_p[i+2]);UNPROTECT(1);R r;}
+ZR rbv(U x) {An(x,n,LGLSXP,r);B* b_p=x+16;DO(i,n,LOGICAL(r)[i]=(int)b_p[i]);UNPROTECT(1);R r;}
 
-// vector only
+// vector case
 ZU frv(SEXP x) {J dim=length(x);double* d=REAL(x);V(dim,d,ret);R ret;}
-ZU fi(SEXP x) {J dim=length(x);J* ret=R_alloc(8,dim+2);J rnk=1;ret[0]=rnk;ret[1]=dim;DO(i,dim,ret[i+2]=(J)(INTEGER(x)[i]));R ret;}
-ZU fb(SEXP x) {J dim=length(x);B* ret=R_alloc(1,dim+16);J* i_p=(J*)ret;J rnk=1;i_p[0]=rnk;i_p[1]=dim;DO(i,dim,ret[i+16]=(B)(LOGICAL(x)[i]));R ret;}
+ZU fiv(SEXP x) {J dim=length(x);J* ret=R_alloc(8,dim+2);J rnk=1;ret[0]=rnk;ret[1]=dim;DO(i,dim,ret[i+2]=(J)(INTEGER(x)[i]));R ret;}
+ZU fbv(SEXP x) {J dim=length(x);B* ret=R_alloc(1,dim+16);J* i_p=(J*)ret;J rnk=1;i_p[0]=rnk;i_p[1]=dim;DO(i,dim,ret[i+16]=(B)(LOGICAL(x)[i]));R ret;}
 
 ZU frm(SEXP a) {int* ds=INTEGER(getAttrib(a,R_DimSymbol));J m=ds[0];J n=ds[1];U x=malloc(24+m*n*8);J* x_i=x;x_i[0]=2;x_i[1]=m;x_i[2]=n;F* x_f=x;double* d=REAL(a);DO(i,m,(DO(j,n,x_f[i*n+j+3]=d[j*m+i])));R x;}
 ZR rfm(U x) {J* i_p=x;J m=i_p[1],n=i_p[2];F* x_f=x;SEXP r=PROTECT(allocMatrix(REALSXP,m,n));double* d=REAL(r);DO(i,m,DO(j,n,d[j*m+i]=x_f[i*n+j+3]));UNPROTECT(1);R r;}
 
-ZU fr(SEXP a){if(Rf_isMatrix(a)){R frm(a);}else if (Rf_isVector(a)){R frv(a);}else E("Higher-rank arguments not supported.")}
-ZR rf(U x){J* x_i=x;J rnk=x_i[0];if(rnk==1){R rfv(x);}else if(rnk==2){R rfm(x);}else E("Higher-rank return values are not supported.")}
+ZU fr(SEXP a){$(Rf_isMatrix(a), frm(a))$(Rf_isVector(a), frv(a)) E("Higher-rank arguments not supported.")
+}
+ZU fi(SEXP a){$(Rf_isVector(a), fiv(a)) E("Integer arrays are not supported.")}
+ZU fb(SEXP a){$(Rf_isVector(a), fbv(a)) E("Boolean arrays are not supported.")}
+
+ZR rf(U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,rfv(x))$(rnk==2,rfm(x)) E("Higher-rank return values are not supported.")}
+ZR ri(U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,riv(x)) E("Integer arrays are not supported.")}
+ZR rb(U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,rbv(x)) E("Boolean arrays are not supported.")}
 
 SEXP hs_init_R(void) {
     hs_init(0,0);
