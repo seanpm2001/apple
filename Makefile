@@ -3,6 +3,8 @@ include mk/os.mk
 MAKEFLAGS += -j
 .DELETE_ON_ERROR:
 
+.PHONY: test
+
 HC ?= ghc
 
 HS_SRC := $(shell find src -type f) $(shell find lib -type f) apple.cabal
@@ -43,6 +45,9 @@ install:
 	strip $$(readlink -f $$(which atc))
 	strip $$(readlink -f $$(which writeo))
 	strip $$(readlink -f $$(which arepl))
+
+test: libapple$(EXT)
+	python3 test/py/mat.py
 
 clean:
 	make -C pyc clean
