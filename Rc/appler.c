@@ -22,7 +22,6 @@
 #define An(x,n,t,ra) J* i_p=x;J n=i_p[1];SEXP ra=PROTECT(allocVector(t,n));
 
 #define ZS static SEXP
-#define _ static inline
 
 typedef const SEXP r;
 

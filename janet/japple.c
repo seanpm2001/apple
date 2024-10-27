@@ -18,13 +18,13 @@ static int jit_gc(void *data, size_t len) {
     R 0;
 }
 
-ZU fv_j(JanetArray* x) {J n=L(x);VA(n*8,y);F* x_f=y;Janet* js=x->data;DO(i,n,x_f[i+2]=janet_unwrap_number(js[i]));R y;}
-ZU fv_i(JanetArray* x) {J n=L(x);VA(n*8,y) J* x_i=y;Janet* js=x->data;DO(i,n,x_i[i+2]=(J)janet_unwrap_integer(js[i]));R y;}
-ZU fv_b(JanetArray* x) {J n=L(x);VA(n,y);B* x_b=y+16;Janet* js=x->data;DO(i,n,x_b[i]=janet_unwrap_boolean(js[i]));R y;}
+_ U fv_j(K JanetArray* x) {J n=L(x);VA(n*8,y);F* x_f=y;Janet* js=x->data;DO(i,n,x_f[i+2]=janet_unwrap_number(js[i]));R y;}
+_ U fv_i(K JanetArray* x) {J n=L(x);VA(n*8,y) J* x_i=y;Janet* js=x->data;DO(i,n,x_i[i+2]=(J)janet_unwrap_integer(js[i]));R y;}
+_ U fv_b(K JanetArray* x) {J n=L(x);VA(n,y);B* x_b=y+16;Janet* js=x->data;DO(i,n,x_b[i]=janet_unwrap_boolean(js[i]));R y;}
 
-Z JanetArray* j_vb(U x) {JA(x,n,xs);B* b_p=x+16;DO(j,n,xs[j]=janet_wrap_boolean((int32_t)b_p[j]));free(x);R arr;}
-Z JanetArray* j_vf(U x) {JA(x,n,xs);F* f_p=x;DO(j,n,xs[j]=janet_wrap_number(f_p[j+2]));free(x);R arr;}
-Z JanetArray* j_vi(U x) {JA(x,n,xs);J* i_p=x;DO(j,n,xs[j]=janet_wrap_integer((int32_t)i_p[j+2]));free(x);R arr;}
+_ JanetArray* j_vb(K U x) {JA(x,n,xs);B* b_p=x+16;DO(j,n,xs[j]=janet_wrap_boolean((int32_t)b_p[j]));free(x);R arr;}
+_ JanetArray* j_vf(K U x) {JA(x,n,xs);F* f_p=x;DO(j,n,xs[j]=janet_wrap_number(f_p[j+2]));free(x);R arr;}
+_ JanetArray* j_vi(K U x) {JA(x,n,xs);J* i_p=x;DO(j,n,xs[j]=janet_wrap_integer((int32_t)i_p[j+2]));free(x);R arr;}
 
 Z Janet apple_call(void *x, int32_t argc, Janet *argv) {
     JF *jit = (JF *)x;
@@ -104,7 +104,7 @@ Z Janet jit(int32_t argc, Janet *argv) {
     R janet_wrap_abstract(j);
 }
 
-static JanetReg cfuns[] = {
+G JanetReg cfuns[] = {
     {"tyof", tyof_j, "type of expression"},
     {"jit", jit, "Compile source string into Janet callable"},
     {NULL, NULL, NULL}
