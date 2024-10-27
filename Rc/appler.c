@@ -15,12 +15,15 @@
 
 // http://adv-r.had.co.nz/C-interface.html
 
+#define $(p,a) if(p){R a;}else
+
 #define ERR(p,msg){if(p==NULL){SEXP er=mkString(msg);free(msg);R er;};}
 #define E(msg){SEXP er=mkString(msg);R er;}
 #define An(x,n,t,ra) J* i_p=x;J n=i_p[1];SEXP ra=PROTECT(allocVector(t,n));
 
 #define ZR static SEXP
-#define $(p,a) if(p){R a;}else
+
+typedef const SEXP r;
 
 TS AppleC {U code;S code_sz;FnTy* ty;U sa;ffi_cif* ffi;} AppleC;
 
@@ -30,40 +33,40 @@ Z void clear(SEXP jit) {
     free(c->sa);free(c->ffi);freety(c->ty);
 }
 
-ZR rfv(U x) {An(x,n,REALSXP,r);F* x_f=x;memcpy(REAL(r),x_f+2,n*8);UNPROTECT(1);R r;}
-ZR riv(U x) {An(x,n,INTSXP,r);DO(i,n,INTEGER(r)[i]=(int)i_p[i+2]);UNPROTECT(1);R r;}
-ZR rbv(U x) {An(x,n,LGLSXP,r);B* b_p=x+16;DO(i,n,LOGICAL(r)[i]=(int)b_p[i]);UNPROTECT(1);R r;}
+ZR rfv(K U x) {An(x,n,REALSXP,r);F* x_f=x;memcpy(REAL(r),x_f+2,n*8);UNPROTECT(1);R r;}
+ZR riv(K U x) {An(x,n,INTSXP,r);DO(i,n,INTEGER(r)[i]=(int)i_p[i+2]);UNPROTECT(1);R r;}
+ZR rbv(K U x) {An(x,n,LGLSXP,r);B* b_p=x+16;DO(i,n,LOGICAL(r)[i]=(int)b_p[i]);UNPROTECT(1);R r;}
 
 // vector case
-ZU frv(SEXP x) {J dim=length(x);double* d=REAL(x);V(dim,d,ret);R ret;}
-ZU fiv(SEXP x) {J dim=length(x);J* ret=R_alloc(8,dim+2);J rnk=1;ret[0]=rnk;ret[1]=dim;DO(i,dim,ret[i+2]=(J)(INTEGER(x)[i]));R ret;}
-ZU fbv(SEXP x) {J dim=length(x);B* ret=R_alloc(1,dim+16);J* i_p=(J*)ret;J rnk=1;i_p[0]=rnk;i_p[1]=dim;DO(i,dim,ret[i+16]=(B)(LOGICAL(x)[i]));R ret;}
+ZU frv(r x) {J dim=length(x);double* d=REAL(x);V(dim,d,ret);R ret;}
+ZU fiv(r x) {J dim=length(x);J* ret=R_alloc(8,dim+2);J rnk=1;ret[0]=rnk;ret[1]=dim;DO(i,dim,ret[i+2]=(J)(INTEGER(x)[i]));R ret;}
+ZU fbv(r x) {J dim=length(x);B* ret=R_alloc(1,dim+16);J* i_p=(J*)ret;J rnk=1;i_p[0]=rnk;i_p[1]=dim;DO(i,dim,ret[i+16]=(B)(LOGICAL(x)[i]));R ret;}
 
-ZU frm(SEXP a) {int* ds=INTEGER(getAttrib(a,R_DimSymbol));J m=ds[0];J n=ds[1];U x=malloc(24+m*n*8);J* x_i=x;x_i[0]=2;x_i[1]=m;x_i[2]=n;F* x_f=x;double* d=REAL(a);DO(i,m,(DO(j,n,x_f[i*n+j+3]=d[j*m+i])));R x;}
+ZU frm(r a) {int* ds=INTEGER(getAttrib(a,R_DimSymbol));J m=ds[0];J n=ds[1];U x=malloc(24+m*n*8);J* x_i=x;x_i[0]=2;x_i[1]=m;x_i[2]=n;F* x_f=x;double* d=REAL(a);DO(i,m,(DO(j,n,x_f[i*n+j+3]=d[j*m+i])));R x;}
 ZR rfm(U x) {J* i_p=x;J m=i_p[1],n=i_p[2];F* x_f=x;SEXP r=PROTECT(allocMatrix(REALSXP,m,n));double* d=REAL(r);DO(i,m,DO(j,n,d[j*m+i]=x_f[i*n+j+3]));UNPROTECT(1);R r;}
 
-ZU fr(SEXP a){$(Rf_isMatrix(a), frm(a))$(Rf_isVector(a), frv(a)) E("Higher-rank arguments not supported.")
+ZU fr(r a){$(Rf_isMatrix(a), frm(a))$(Rf_isVector(a), frv(a)) E("Higher-rank arguments not supported.")
 }
-ZU fi(SEXP a){$(Rf_isVector(a), fiv(a)) E("Integer arrays are not supported.")}
-ZU fb(SEXP a){$(Rf_isVector(a), fbv(a)) E("Boolean arrays are not supported.")}
+ZU fi(r a){$(Rf_isVector(a), fiv(a)) E("Integer arrays are not supported.")}
+ZU fb(r a){$(Rf_isVector(a), fbv(a)) E("Boolean arrays are not supported.")}
 
-ZR rf(U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,rfv(x))$(rnk==2,rfm(x)) E("Higher-rank return values are not supported.")}
-ZR ri(U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,riv(x)) E("Integer arrays are not supported.")}
-ZR rb(U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,rbv(x)) E("Boolean arrays are not supported.")}
+ZR rf(K U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,rfv(x))$(rnk==2,rfm(x)) E("Higher-rank return values are not supported.")}
+ZR ri(K U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,riv(x)) E("Integer arrays are not supported.")}
+ZR rb(K U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,rbv(x)) E("Boolean arrays are not supported.")}
 
 SEXP hs_init_R(void) {
     hs_init(0,0);
     R mkString("...loaded GHC runtime");
 }
 
-SEXP ty_R(SEXP a) {
+SEXP ty_R(r a) {
     K char* inp=CHAR(asChar(a));T err;
     T typ=apple_printty(inp,&err);
     ERR(typ,err);
     R mkString(typ);
 }
 
-SEXP jit_R(SEXP a){
+SEXP jit_R(r a){
     K char* inp=CHAR(asChar(a));
     T err;
         FnTy* ty=apple_ty(inp,&err);
@@ -80,7 +83,7 @@ SEXP jit_R(SEXP a){
     R r;
 }
 
-SEXP asm_R(SEXP a) {
+SEXP asm_R(r a) {
     K char* inp=CHAR(asChar(a));T err;
     T ret=apple_dumpasm(inp,&err);
     ERR(ret,err);
