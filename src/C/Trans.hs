@@ -1,7 +1,6 @@
 module C.Trans ( writeC ) where
 
 import           A
-import           Bits
 import           C
 import           CF.AL                            (AL (..))
 import qualified CF.AL                            as AL
@@ -14,7 +13,7 @@ import           Data.Int                         (Int64)
 import qualified Data.IntMap                      as IM
 import qualified Data.IntSet                      as IS
 import           Data.List                        (scanl')
-import           Data.Maybe                       (catMaybes, isJust)
+import           Data.Maybe                       (catMaybes)
 import           Data.Word                        (Word64)
 import           GHC.Float                        (castDoubleToWord64)
 import           Nm
@@ -828,23 +827,6 @@ aeval (EApp res (EApp _ (Builtin _ Cyc) xs) n) t | Just sz <- aB res = do
     ix <- nI
     let loop=for res i 0 ILt (Tmp nR) [CpyE () (AElem t 1 (Tmp ix) (Just a) sz) (AElem xR 1 0 lX sz) (Tmp szR) sz, ix+=Tmp szR]
     pure (Just a, plX $ plN ++ szR =: ev (eAnn xs) (xR,lX):nO =: (Tmp szR*Tmp nR):aV++ix =: 0:[loop])
-aeval (EApp _ (EApp _ (Builtin _ VMul) a) x) t | Just (F, [m,n]) <- tIx$eAnn a, Just s <- cLog n = do
-    i <- nI; j <- nI; mR <- nI; nR <- nI; z <- nF
-    (aL,aV) <- v8 t (Tmp mR)
-    (plAA, (lA, aR)) <- plA a; (plX, (lX, xR)) <- plA x
-    let loop = For () i 0 ILt (Tmp mR)
-                  [ MX () z 0,
-                    for (eAnn x) j 0 ILt (Tmp nR)
-                        [ MX () z (FTmp z+FAt (AElem aR 2 (Bin IAsl (Tmp i) (ConstI s)+Tmp j) lA 8)*FAt (AElem xR 1 (Tmp j) lX 8)) ]
-                  , WrF () (AElem t 1 (Tmp i) (Just aL) 8) (FTmp z)
-                  ]
-    pure (Just aL,
-        plAA$
-        plX$
-        mR=:ConstI m
-        :aV
-        ++nR=:ConstI n
-        :[loop])
 aeval (EApp _ (EApp _ (Builtin _ VMul) (EApp _ (Builtin _ T) a)) x) t | f1 tX = do
     i <- nI; j <- nI; m <- nI; n <- nI; z <- nF
     (aL,aV) <- v8 t (Tmp m)
@@ -1089,16 +1071,6 @@ aeval (Id (Arr _ at) (AShLit ns es)) t | Just ty <- nt at, sz <- bT ty = do
     tt <- rtemp ty
     plEs <- zipWithM (\eϵ i -> do {pl <- eeval eϵ tt; pure $ pl ++ [wt (AElem t rnk (ConstI i) (Just a) sz) tt]}) es [0..]
     pure (Just a, Ma () a t rnk n sz:diml (t, Just a) (fromIntegral<$>ns)++concat plEs)
-aeval (EApp _ (Builtin _ T) x) t | Just (ty, ixes) <- tIx (eAnn x), rnk <- fromIntegral$length ixes, any (isJust.cLog) ixes = do
-    a <- nextArr t
-    let sze=bT ty; rnkE=ConstI rnk
-    xd <- nI; td <- nI
-    (plX, (lX, xR)) <- plA x
-    (dts, plDs) <- plDim rnk (xR, lX)
-    let n:sstrides = reverse $ scanl' (*) 1 (reverse ixes); _:dstrides=reverse $ scanl' (*) 1 ixes
-    is <- traverse (\_ -> nI) [1..rnk]
-    let loop=thread (zipWith (\i tt -> (:[]) . For () i 0 ILt (Tmp tt)) is dts) [CpyE () (At td (ConstI<$>dstrides) (Tmp<$>reverse is) (Just a) sze) (At xd (ConstI<$>sstrides) (Tmp<$>is) lX sze) 1 sze]
-    pure (Just a, plX$plDs++Ma () a t (ConstI rnk) (ConstI n) sze:diml (t, Just a) (Tmp<$>reverse dts)++xd=:DP xR rnkE:td=:DP t rnkE:loop)
 aeval (EApp _ (Builtin _ T) x) t | Just (ty, rnk) <- tRnk (eAnn x) = do
     a <- nextArr t
     let sze=bT ty; dO=ConstI$8+8*rnk
