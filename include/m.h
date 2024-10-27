@@ -10,4 +10,3 @@ typedef intptr_t P;typedef char* T;typedef size_t S;typedef void* U;typedef doub
 #define ZU static U
 #define C(i,a) case i:{a;}break;
 #define DO(i,n,a) {J i;for(i=0;i<n;i++){a;}}
-
