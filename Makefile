@@ -49,6 +49,9 @@ install:
 test: libapple$(EXT)
 	python3 test/py/mat.py
 
+test-pyc: install-py
+	python3 test/py/py.py
+
 clean:
 	make -C pyc clean
 	make -C vscode clean
