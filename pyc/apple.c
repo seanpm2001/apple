@@ -5,7 +5,7 @@
 #include"../include/apple_abi.h"
 #include"../c/ffi.c"
 
-typedef PyObject* PY;typedef PyArrayObject* NP;
+typedef PyObject* PY;typedef const PyArrayObject* NP;typedef const PY PYA;
 
 #define CT(o,c,s) {PyArray_Descr *d=PyArray_DESCR(o);if(!(d->type==c)){PyErr_SetString(PyExc_RuntimeError,s);}}
 #define ERR(p,msg) {if(p==NULL){PyErr_SetString(PyExc_RuntimeError,msg);free(msg);R NULL;};}
@@ -31,42 +31,42 @@ static PyTypeObject AT = {
 #define A(r,n,w,x,py) J r=PyArray_NDIM(py);J n=PyArray_SIZE(py);U x=malloc(8+8*r+n*w);AD(r,x,py)
 
 // https://numpy.org/doc/stable/reference/c-api/array.html
-ZU f_npy(const NP o) {CT(o,'d',"Error: expected an array of floats");A(rnk,n,8,x,o);F* x_f=x;U data=PyArray_DATA(o);memcpy(x_f+rnk+1,data,n*8);R x;}
-ZU b_npy(const NP o) {CT(o,'?',"Error: expected an array of booleans");A(rnk,n,1,x,o);B* x_p=x;U data=PyArray_DATA(o);memcpy(x_p+8*rnk+8,data,n);R x;}
-ZU i_npy(const NP o) {CT(o,'l',"Error: expected an array of 64-bit integers");A(rnk,n,8,x,o);J* x_i=x;U data=PyArray_DATA(o);memcpy(x_i+rnk+1,data,n*8);R x;}
+ZU f_npy(K NP o) {CT(o,'d',"Error: expected an array of floats");A(rnk,n,8,x,o);F* x_f=x;U data=PyArray_DATA(o);memcpy(x_f+rnk+1,data,n*8);R x;}
+ZU b_npy(K NP o) {CT(o,'?',"Error: expected an array of booleans");A(rnk,n,1,x,o);B* x_p=x;U data=PyArray_DATA(o);memcpy(x_p+8*rnk+8,data,n);R x;}
+ZU i_npy(K NP o) {CT(o,'l',"Error: expected an array of 64-bit integers");A(rnk,n,8,x,o);J* x_i=x;U data=PyArray_DATA(o);memcpy(x_i+rnk+1,data,n*8);R x;}
 
 #define RP(rnk,x,n,w,ls,T) {S sz=w*n;CA* d=PyObject_New(CA,&AT);d->h=x;d->d=x+rnk*8+8;PyArray_Descr* pd=PyArray_DescrFromType(T); PY r=PyArray_NewFromDescr(&PyArray_Type,pd,(int)rnk,ls,NULL,d->d,NPY_ARRAY_C_CONTIGUOUS,NULL); R r;}
 
-#define NPA(f,s,T) ZF f(U x) {CD(rnk,x,t,ls);RP(rnk,x,t,s,ls,T);}
+#define NPA(f,s,T) ZF f(K U x) {CD(rnk,x,t,ls);RP(rnk,x,t,s,ls,T);}
 
 NPA(npy_i,8,NPY_INT64)
 NPA(npy_f,8,NPY_FLOAT64)
 NPA(npy_b,1,NPY_BOOL)
 
-ZF apple_typeof(PY self, PY args) {
+ZF apple_typeof(PYA self, PYA args) {
     const T inp;PyArg_ParseTuple(args, "s", &inp);
     T err;
         T res = apple_printty(inp,&err);
     ERR(res,err);
-    PY py = PyUnicode_FromString(res);
+    K PY py = PyUnicode_FromString(res);
     free(res);R py;
 }
 
-ZF apple_asm(PY self, PY args) {
+ZF apple_asm(PYA self, PYA args) {
     const T inp;PyArg_ParseTuple(args, "s", &inp);
     T err;
         T res = apple_dumpasm(inp,&err);
     ERR(res,err);
-    PY py = PyUnicode_FromString(res);
+    K PY py = PyUnicode_FromString(res);
     free(res);R py;
 }
 
-ZF apple_ir(PY self, PY args) {
+ZF apple_ir(PYA self, PYA args) {
     const T inp;PyArg_ParseTuple(args, "s", &inp);
     T err;
         T res = apple_dumpir(inp,&err);
     ERR(res,err);
-    PY py = PyUnicode_FromString(res);
+    K PY py = PyUnicode_FromString(res);
     free(res); R py;
 }
 
@@ -83,7 +83,7 @@ Z void cache_dealloc(JO* self) {
 ZF apple_ts(JO* self) {R PyUnicode_FromString(self->ts);}
 
 // file:///usr/share/doc/libffi8/html/The-Basics.html
-ZF apple_call(PY self, PY args, PY kwargs) {
+ZF apple_call(PYA self, PYA args, PYA kwargs) {
     JO* c=(JO*)self;PY arg0=NULL,arg1=NULL,arg2=NULL,arg3=NULL,arg4=NULL,arg5=NULL;
     PyArg_ParseTuple(args, "|OOOOOO", &arg0, &arg1, &arg2, &arg3, &arg4, &arg5);
     FnTy* ty=c->ty;U fp=c->bc;
@@ -131,7 +131,7 @@ static PyTypeObject JOT = {
     .tp_dealloc = (destructor)cache_dealloc,
 };
 
-ZF apple_jit(PY self, PY args) {
+ZF apple_jit(PYA self, PYA args) {
     const T inp;PyArg_ParseTuple(args, "s", &inp);
     T err;
     FnTy* ty=apple_ty(inp,&err);
