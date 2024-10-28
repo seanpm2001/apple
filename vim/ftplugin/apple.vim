@@ -10,7 +10,6 @@ normal zR
 digraphs <- 8592
     \ o- 10204
     \ ee 8495
-    \ oo 8728
     \ /\ 923
     \ ff 119995
     \ <\ 8882
@@ -25,7 +24,6 @@ digraphs <- 8592
     \ >> 10217
     \ 1% 8543
     \ o\ 9033
-    \ xx 215
 
 setlocal makeprg=atc\ %
 setlocal errorformat=%Eatc:\ %l:%c:%m

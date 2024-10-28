@@ -5,7 +5,6 @@ The Vim plugin for Apple provides the following |digraphs|:
 ←   <-
 ⟜   o-
 ℯ   ee
-∘   oo
 Λ   /\
 𝒻   ff
 ⊲   <\
@@ -19,5 +18,10 @@ The Vim plugin for Apple provides the following |digraphs|:
 ⟩   >>
 ⅟   1%
 ⍉   o\
-×   xx
 ₒ   o.
+
+Additionally the following digraphs are provided by Vim:
+
+×   *X
+√   RT
+∘   Ob
