@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Prettyprinter.Ext ( (<#>), (<?>)
+module Prettyprinter.Ext ( (<#>), (<?>), (<!>)
                          , PS (..)
                          , parensp
                          , prettyLines
@@ -20,15 +20,17 @@ import           Data.Text.Lazy.Builder     (toLazyTextWith)
 import           Data.Text.Lazy.Builder.Int (hexadecimal)
 import           Data.Word                  (Word64)
 import           Prettyprinter              (Doc, LayoutOptions (..), PageWidth (AvailablePerLine), Pretty (..), SimpleDocStream, concatWith, encloseSep, flatAlt, group, hardline,
-                                             layoutSmart, parens, softline', vsep, (<+>))
+                                             indent, layoutSmart, parens, softline', space, vsep, (<+>))
 import           Prettyprinter.Render.Text  (renderStrict)
 
 infixr 6 <#>
 infixr 5 <?>
+infixr 5 <!>
 
-(<#>), (<?>) :: Doc a -> Doc a -> Doc a
+(<#>), (<?>), (<!>) :: Doc a -> Doc a -> Doc a
 (<#>) x y = x <> hardline <> y
 (<?>) x y = x <> softline' <> y
+(<!>) x y = flatAlt (x <> hardline <> indent 4 y) (x <> space <> y)
 
 class PS a where ps :: Int -> a -> Doc ann
 

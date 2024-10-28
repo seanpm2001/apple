@@ -18,11 +18,13 @@ module A ( T (..)
 
 import           Control.DeepSeq   (NFData)
 import           Data.Bifunctor    (first)
+import           Data.Foldable     (toList)
 import qualified Data.IntMap       as IM
+import qualified Data.Sequence     as Seq
 import           GHC.Generics      (Generic)
 import           Nm
 import           Prettyprinter     (Doc, Pretty (..), align, braces, brackets, colon, comma, encloseSep, flatAlt, group, hsep, lbrace, lbracket, parens, pipe, punctuate, rbrace,
-                                    rbracket, tupled, (<+>))
+                                    rbracket, tupled, vsep, (<+>))
 import           Prettyprinter.Ext
 
 instance Pretty (I a) where pretty=ps 0
@@ -233,8 +235,8 @@ data Builtin = Plus | Minus | Times | Div | IntExp | Exp | Log
              deriving (Generic)
              -- TODO: (feuilleter, stagger, ...) reshape...?
 
-ptName :: Nm (T a) -> Doc ann
-ptName n@(Nm _ _ t) = parens (pretty n <+> ":" <+> pretty t)
+ptn :: Nm (T a) -> Doc ann
+ptn n@(Nm _ _ t) = parens (pretty n <+> ":" <+> pretty t)
 
 prettyC :: (T (), [(Nm a, C)]) -> Doc ann
 prettyC (t, []) = pretty t
@@ -243,25 +245,32 @@ prettyC (t, cs) = tupled (pc<$>cs) <+> ":=>" <+> pretty t
 
 -- TODO: constraints
 prettyTyped :: E (T a) -> Doc ann
-prettyTyped (Var t n)                                             = parens (pretty n <+> ":" <+> pretty t)
-prettyTyped (Builtin t b)                                         = parens (pretty b <+> ":" <+> pretty t)
-prettyTyped (ILit t n)                                            = parens (pretty n <+> ":" <+> pretty t)
-prettyTyped (FLit t x)                                            = parens (pretty x <+> ":" <+> pretty t)
-prettyTyped (BLit t True)                                         = parens ("#t" <+> colon <+> pretty t)
-prettyTyped (BLit t False)                                        = parens ("#f" <+> colon <+> pretty t)
-prettyTyped (Cond t p e0 e1)                                      = parens ("?" <+> prettyTyped p <+> ",." <+> prettyTyped e0 <+> prettyTyped e1) <+> colon <+> pretty t
-prettyTyped (Lam _ n@(Nm _ _ xt) e)                               = parens ("λ" <> parens (pretty n <+> ":" <+> pretty xt) <> "." <+> prettyTyped e)
-prettyTyped (EApp _ (EApp _ (EApp _ (Builtin _ FoldS) e0) e1) e2) = parens (prettyTyped e0 <> "/ₒ" <+> prettyTyped e1 <+> prettyTyped e2)
-prettyTyped (EApp _ (EApp _ (EApp _ (Builtin _ FoldA) e0) e1) e2) = parens (prettyTyped e0 <> "/*" <+> prettyTyped e1 <+> prettyTyped e2)
-prettyTyped (EApp _ (EApp _ (EApp _ (Builtin _ Foldl) e0) e1) e2) = parens (prettyTyped e0 <> "/l" <+> prettyTyped e1 <+> prettyTyped e2)
-prettyTyped (EApp t (EApp _ (EApp _ (Builtin _ Outer) e0) e1) e2) = parens (prettyTyped e1 <+> pretty e0 <> "⊗" <+> prettyTyped e2 <+> ":" <+> pretty t)
-prettyTyped (EApp _ e0@(Builtin _ op) e1) | isBinOp op            = parens (prettyTyped e1 <+> prettyTyped e0)
-prettyTyped (EApp _ e0 e1)                                        = parens (prettyTyped e0 <+> prettyTyped e1)
-prettyTyped (Let t (n, e) e')                                     = parens (braces (ptName n <+> "←" <+> prettyTyped e <> ";" <+> prettyTyped e') <+> pretty t)
-prettyTyped (LLet t (n, e) e')                                    = parens (braces (ptName n <+> "⟜" <+> prettyTyped e <> ";" <+> prettyTyped e') <+> pretty t)
-prettyTyped (Def t (n, e) e')                                     = parens (braces (ptName n <+> "⇐" <+> prettyTyped e <> ";" <+> prettyTyped e') <+> pretty t)
-prettyTyped (Tup _ es)                                            = tupled (prettyTyped <$> es)
-prettyTyped e@(ALit t _)                                          = parens (pretty e <+> ":" <+> pretty t)
+prettyTyped = pt where
+    pt (Var t n)                                             = parens (pretty n <+> ":" <+> pretty t)
+    pt (Builtin t b)                                         = parens (pretty b <+> ":" <+> pretty t)
+    pt (ILit t n)                                            = parens (pretty n <+> ":" <+> pretty t)
+    pt (FLit t x)                                            = parens (pretty x <+> ":" <+> pretty t)
+    pt (BLit t True)                                         = parens ("#t" <+> colon <+> pretty t)
+    pt (BLit t False)                                        = parens ("#f" <+> colon <+> pretty t)
+    pt (Cond t p e0 e1)                                      = parens ("?" <+> pt p <+> ",." <+> pt e0 <+> pt e1) <+> colon <+> pretty t
+    pt (Lam _ n@(Nm _ _ xt) e)                               = "λ" <> parens (pretty n <+> ":" <+> pretty xt) <> "." <!> pt e
+    pt (EApp _ (EApp _ (EApp _ (Builtin _ FoldS) e0) e1) e2) = parens (pt e0 <> "/ₒ" <+> pt e1 <+> pt e2)
+    pt (EApp _ (EApp _ (EApp _ (Builtin _ FoldA) e0) e1) e2) = parens (pt e0 <> "/*" <+> pt e1 <+> pt e2)
+    pt (EApp _ (EApp _ (EApp _ (Builtin _ Foldl) e0) e1) e2) = parens (pt e0 <> "/l" <+> pt e1 <+> pt e2)
+    pt (EApp t (EApp _ (EApp _ (Builtin _ Outer) e0) e1) e2) = parens (pt e1 <+> pretty e0 <> "⊗" <+> pt e2 <+> ":" <+> pretty t)
+    pt (EApp _ (EApp _ (EApp _ (Builtin _ ScanS) e0) e1) e2) = parens (pt e0 <> "Λₒ" <+> pt e1 <+> pt e2)
+    pt (EApp _ (EApp _ (Builtin _ (DI i)) e0) e1)            = parens (pt e0 <> "\\`" <> pretty i <+> pt e1)
+    pt (EApp _ e0@(Builtin _ op) e1) | isBinOp op            = parens (pt e1 <+> pt e0)
+    pt e@EApp{} | es <- spine e                              = parens (align (vsep (pt <$> (toList es))))
+    pt (Let t (n, e) e')                                     = parens (braces (ptn n <+> "←" <+> pt e <> ";" <+> pt e') <+> pretty t)
+    pt (LLet t (n, e) e')                                    = parens (braces (ptn n <+> "⟜" <+> pt e <> ";" <+> pt e') <+> pretty t)
+    pt (Def t (n, e) e')                                     = parens (braces (ptn n <+> "⇐" <+> pt e <> ";" <+> pt e') <+> pretty t)
+    pt (Tup _ es)                                            = tupled (pt <$> es)
+    pt e@(ALit t _)                                          = parens (pretty e <+> ":" <+> pretty t)
+
+spine :: E a -> Seq.Seq (E a)
+spine (EApp _ e0 e1) = spine e0 Seq.|> e1
+spine e              = Seq.singleton e
 
 mPrec :: Builtin -> Maybe Int
 mPrec Plus   = Just 6
