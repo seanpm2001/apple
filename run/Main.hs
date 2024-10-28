@@ -52,7 +52,10 @@ main :: IO ()
 main = runRepl loop
 
 namesStr :: StateT Env IO [String]
-namesStr = gets (fmap (T.unpack.name.fst) . ee)
+namesStr = gets ((++bn) . fmap (T.unpack.name.fst) . ee)
+
+bn :: [String]
+bn = ["frange", "irange", "itof", "gen.", "di.", "sin.", "cos.", "rand.", "eye.", "cyc.", "odd.", "even.", "abs.", "re:"]
 
 data Arch = X64 | AArch64 !MCtx
 
