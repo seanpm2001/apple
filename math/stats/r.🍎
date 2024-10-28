@@ -1,0 +1,7 @@
+-- sample pearson correlation coefficient
+λxs.λys.
+{
+  Σ ⇐ [(+)/x]; avg ← λxs. {n⟜ ℝ(:xs); Σ xs%n};
+  μ_x ⟜ avg xs; μ_y ⟜ avg ys;
+  Σ ([(x-μ_x)*(y-μ_y)]`xs ys)%(√(Σ ([(x-μ_x)^2]'xs))*√(Σ ((λy.(y-μ_y)^2)'ys)))
+}
