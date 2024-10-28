@@ -7,9 +7,10 @@
 
 typedef PyObject* PY;typedef const PyArrayObject* NP;typedef const PY PYA;
 
-#define $e(p,e) {if(!(p)){PyErr_SetString(PyExc_RuntimeError,e);};}
+#define $arr(o){if(!(PyArray_CheckExact(pyarg))){PyErr_SetString(PyExc_RuntimeError,"Expected NumPy array.");R NULL;}}
+#define $e(p,e) {if(!(p)){PyErr_SetString(PyExc_RuntimeError,e);}}
 #define CT(o,c,s) {$e((o->flags && NPY_ARRAY_C_CONTIGUOUS), "Only row-major (C-style) arrays are supported.");PyArray_Descr *d=PyArray_DESCR(o);$e((d->type==c),s);}
-#define ERR(p,msg) {if(p==NULL){PyErr_SetString(PyExc_RuntimeError,msg);free(msg);R NULL;};}
+#define ERR(p,msg) {if(p==NULL){PyErr_SetString(PyExc_RuntimeError,msg);free(msg);R NULL;}}
 
 #define ZF Z PY
 
@@ -97,9 +98,9 @@ ZF apple_call(PYA self, PYA args, PYA kwargs) {
         pyarg=pyargs[k];
         if(pyarg!=NULL){
             switch(ty->args[k]){
-                C(IA,SA(U,x);*x=i_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
-                C(BA,SA(U,x);*x=b_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
-                C(FA,SA(U,x);*x=f_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
+                C(IA,SA(U,x);$arr(pyarg);*x=i_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
+                C(BA,SA(U,x);$arr(pyarg);*x=b_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
+                C(FA,SA(U,x);$arr(pyarg);*x=f_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
                 C(I_t,SA(J,xi);*xi=PyLong_AsLong(pyarg);vals[k]=xi;)
                 C(F_t,SA(F,xf);*xf=PyFloat_AsDouble(pyarg);vals[k]=xf;)
             }
