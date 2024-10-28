@@ -3,3 +3,4 @@ tyof<-function(a) {.Call("ty_R",a)}
 asm<-function(a) {.Call("asm_R",a)}
 jit<-function(a) {.Call("jit_R",a)}
 run<-function(...) {.External("run_R",...)}
+const<-function(str) {run(jit(str))}
