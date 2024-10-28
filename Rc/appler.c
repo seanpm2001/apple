@@ -37,7 +37,7 @@ _ SEXP rfv(K U x) {An(x,n,REALSXP,r);F* x_f=x;memcpy(REAL(r),x_f+2,n*8);UNPROTEC
 _ SEXP riv(K U x) {An(x,n,INTSXP,r);DO(i,n,INTEGER(r)[i]=(int)i_p[i+2]);UNPROTECT(1);R r;}
 _ SEXP rbv(K U x) {An(x,n,LGLSXP,r);B* b_p=x+16;DO(i,n,LOGICAL(r)[i]=(int)b_p[i]);UNPROTECT(1);R r;}
 
-// vector case
+// vector
 _ U frv(r x) {J dim=length(x);double* d=REAL(x);V(dim,d,ret);R ret;}
 _ U fiv(r x) {J dim=length(x);J* ret=R_alloc(8,dim+2);J rnk=1;ret[0]=rnk;ret[1]=dim;DO(i,dim,ret[i+2]=(J)(INTEGER(x)[i]));R ret;}
 _ U fbv(r x) {J dim=length(x);B* ret=R_alloc(1,dim+16);J* i_p=(J*)ret;J rnk=1;i_p[0]=rnk;i_p[1]=dim;DO(i,dim,ret[i+16]=(B)(LOGICAL(x)[i]));R ret;}
@@ -46,13 +46,13 @@ _ U fbv(r x) {J dim=length(x);B* ret=R_alloc(1,dim+16);J* i_p=(J*)ret;J rnk=1;i_
 #define AD2(x,m,n) J* x_i=x;J m=x_i[1],n=x_i[2]
 #define AM(r,x,m,n) RD2(r,l,m,n);U x=malloc(24+m*n*8);{J* x_i=x;x_i[0]=2;x_i[1]=m;x_i[2]=n;}
 #define AR(x,r,m,n) AD2(x,m,n);SEXP r=PROTECT(allocMatrix(REALSXP,m,n));
-#define FC2(p,d,m,n) DO(i,m,(DO(j,n,p[i*n+j]=d[j*m+i])))
+#define FC2(p,d,m,n) DO(i,m,DO(j,n,p[i*n+j]=d[j*m+i]))
 #define CF2(d,p,m,n) DO(i,m,DO(j,n,d[j*m+i]=p[i*n+j]))
 
 _ U frm(r a) {AM(a,x,m,n);F* x_f=x+24;double* d=REAL(a);FC2(x_f,d,m,n);R x;}
 _ SEXP rfm(U x) {AR(x,r,m,n);double* d=REAL(r);F* x_f=x+24;CF2(d,x_f,m,n);UNPROTECT(1);R r;}
 
-ZU fr(r a){$(Rf_isMatrix(a), frm(a))$(Rf_isVector(a), frv(a)) E("Higher-rank arguments not supported.")
+ZU fr(r a){$(Rf_isMatrix(a), frm(a))$(Rf_isVector(a), frv(a)) E("Higher-rank arguments are not supported.")
 }
 ZU fi(r a){$(Rf_isVector(a), fiv(a)) E("Integer arrays are not supported.")}
 ZU fb(r a){$(Rf_isVector(a), fbv(a)) E("Boolean arrays are not supported.")}
@@ -104,7 +104,7 @@ SEXP run_R(SEXP args){
     FnTy* ty=c->ty;U fp=c->code;ffi_cif* cif=c->ffi;
     SEXP r;
     int argc=ty->argc;
-    U* vals=alloca(SZ(U)*argc), ret=alloca(8);
+    U* vals=alloca(SZ(U)*argc); U ret=alloca(8);
     uint8_t fs=0;
     for(int k=0;k<argc;k++){
         args=CDR(args);SEXP arg=CAR(args);
