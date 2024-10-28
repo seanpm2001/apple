@@ -259,7 +259,6 @@ prettyTyped = pt where
     pt (EApp _ (EApp _ (EApp _ (Builtin _ Foldl) e0) e1) e2) = parens (pt e0 <> "/l" <+> pt e1 <+> pt e2)
     pt (EApp t (EApp _ (EApp _ (Builtin _ Outer) e0) e1) e2) = parens (pt e1 <+> pretty e0 <> "⊗" <+> pt e2 <+> ":" <+> pretty t)
     pt (EApp _ (EApp _ (EApp _ (Builtin _ ScanS) e0) e1) e2) = parens (pt e0 <> "Λₒ" <+> pt e1 <+> pt e2)
-    pt (EApp _ (EApp _ (Builtin _ (DI i)) e0) e1)            = parens (pt e0 <> "\\`" <> pretty i <+> pt e1)
     pt (EApp _ e0@(Builtin _ op) e1) | isBinOp op            = parens (pt e1 <+> pt e0)
     pt e@EApp{} | es <- spine e                              = parens (align (vsep (pt <$> (toList es))))
     pt (Let t (n, e) e')                                     = parens (braces (ptn n <+> "←" <+> pt e <> ";" <+> pt e') <+> pretty t)
