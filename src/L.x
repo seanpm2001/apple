@@ -256,7 +256,6 @@ tokens :-
         ⅒                        { mkFloat (1/10) }
         ⅔                        { mkFloat (2/3) }
         ⅖                        { mkFloat 0.4 }
-        ¾                        { mkFloat 0.75 }
         ⅗                        { mkFloat 0.6 }
         ⅘                        { mkFloat 0.8 }
         ⅚                        { mkFloat (5/6) }
