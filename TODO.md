@@ -3,16 +3,19 @@
 - [ ] documentation generated from types
 - [ ] idioms... deforestation
 - [x] `.🍎` file extension (`.🍏`)
-  - [ ] ⍳ (apl iota)
-  - [ ] ⩪ for filter
+  - [x] ⍳ (apl iota)
+  - [x] ⩪ for filter
   - [x] § is fun I love typographers
-  - [x] ℘
+  - [ ] ℘
+    - [ ] span/break?
   - [ ] ⊲ ⊳ ⪫ ⪪
+  - [ ] ⫛ for J's oblique
   - [x] ⸎
   - [ ] ‰
   - [ ] https://en.wikipedia.org/wiki/Guillemet#Encoding
   - [ ] https://en.wikipedia.org/wiki/Prime_(symbol)#Computer_encodings
   - [ ] script f https://en.wikipedia.org/wiki/Mathematical_Alphanumeric_Symbols#Latin_letters
+  - [ ] https://www.compart.com/en/unicode/block/U+2A00
   - [x] dfns like k, APL (J)
 - [ ] mapMaybe hm
 - [ ] numpy einstein summation
