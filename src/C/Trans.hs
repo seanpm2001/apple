@@ -358,9 +358,9 @@ plSlop sz slopRnk complDims = do
     pure (slopP, slopSz,
             PlProd () slopSz complDims
                 :slopE=:(Tmp slopSz*ConstI sz+ConstI (8*(slopRnk+1)))
-                :Sa () slopP (Tmp slopE):Wr () (ARnk slopP Nothing) (ConstI slopRnk)
+                :sa sz slopP (Tmp slopE):Wr () (ARnk slopP Nothing) (ConstI slopRnk)
                 :diml (slopP, Nothing) complDims,
-         Pop () (Tmp slopE))
+         pop sz (Tmp slopE))
 
 codT :: T () -> T ()
 codT (Arrow _ t@Arrow{}) = codT t
@@ -1670,8 +1670,11 @@ feval (Id _ (FoldGen seed g f n)) t = do
     pure $ plSeed $ plN++[MX () acc (FTmp seedR), MX () x (FTmp seedR), For () k 0 ILt (Tmp nR) (fss++uss), MX () t (FTmp acc)]
 feval e _ = error (show e)
 
-sac t = Sa () t.ConstI
-popc = Pop().ConstI
+sac t = Sa8 () t.ConstI
+popc = Pop8().ConstI
+
+sa sz | sz `rem` 8 == 0 = Sa8 ()
+pop sz | sz `rem` 8 == 0 = Pop8 ()
 
 m'pop = maybe [] ((:[]).popc)
 m'sa t = maybe []  ((:[]).sac t)
