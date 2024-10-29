@@ -226,8 +226,8 @@ writeCM eϵ = do
              | isI (eAnn e) = do {t <- nI; (++[CRet =: Tmp t]) <$> eval e t} -- avoid clash when calling functions
              | isB (eAnn e) = do {t <- nBT; (++[MB () CBRet (Is t)]) <$> peval e t}
              | isArr (eAnn e) = do {i <- nI; (l,r) <- aeval e i; pure$r++[CRet =: Tmp i]++case l of {Just m -> [RA () m]; Nothing -> []}}
-             | P [F,F] <- eAnn e = do {t <- nI; (_,_,_,p) <- πe e t; pure$Sa () t 16:p++[MX () FRet0 (FAt (Raw t 0 Nothing 8)), MX () FRet1 (FAt (Raw t 1 Nothing 8)), Pop () 16]}
-             | ty@P{} <- eAnn e, b64 <- bT ty, (n,0) <- b64 `quotRem` 8 = let b=ConstI b64 in do {t <- nI; a <- nextArr CRet; (_,_,ls,pl) <- πe e t; pure (Sa () t b:pl++MaΠ () a CRet b:CpyE () (TupM CRet (Just a)) (TupM t Nothing) (ConstI n) 8:Pop () b:RA () a:(RA ()<$>ls))}
+             | P [F,F] <- eAnn e = do {t <- nI; (_,_,_,p) <- πe e t; pure$sac t 16:p++[MX () FRet0 (FAt (Raw t 0 Nothing 8)), MX () FRet1 (FAt (Raw t 1 Nothing 8)), popc 16]}
+             | ty@P{} <- eAnn e, b64 <- bT ty, (n,0) <- b64 `quotRem` 8 = let b=ConstI b64 in do {t <- nI; a <- nextArr CRet; (_,_,ls,pl) <- πe e t; pure (sac t b64:pl++MaΠ () a CRet b:CpyE () (TupM CRet (Just a)) (TupM t Nothing) (ConstI n) 8:popc b64:RA () a:(RA ()<$>ls))}
 
 rtemp :: T a -> CM RT
 rtemp F=FT<$>nF; rtemp I=IT<$>nI; rtemp B=PT<$>nBT
@@ -266,8 +266,7 @@ arg ty at | isR ty = do
     pure (t, mt at t, Nothing)
 arg ty at | isΠ ty = do
     slop <- nI
-    let sz=bT ty; slopE=ConstI sz
-    pure (IT slop, CpyE () (TupM slop Nothing) at 1 sz, Just (Sa () slop slopE, Pop () slopE))
+    pure $ let sz=bT ty in (IT slop, CpyE () (TupM slop Nothing) at 1 sz, Just (sac slop sz, popc sz))
 
 rW :: T () -> ArrAcc -> CM (RT, CS (), Maybe (CS (), CS ()))
 rW ty at | isR ty = do
@@ -275,8 +274,7 @@ rW ty at | isR ty = do
     pure (t, wt at t, Nothing)
 rW ty at | isΠ ty = do
     slopO <- nI
-    let sz=bT ty; slopE=ConstI sz
-    pure (IT slopO, CpyE () at (TupM slopO Nothing) 1 sz, Just (Sa () slopO slopE, Pop () slopE))
+    pure $ let sz=bT ty in (IT slopO, CpyE () at (TupM slopO Nothing) 1 sz, Just (sac slopO sz, popc sz))
 
 writeRF :: E (T ()) -> [RT] -> RT -> CM [CS ()]
 writeRF e args = fmap snd.writeF e (ra<$>args)
@@ -350,9 +348,9 @@ extrCell sz fixBounds sstrides (srcP, srcL) dest = do
 vslop :: Int64 -> Int -> CM (Temp, [CS ()], CS ())
 vslop sz n = do
     slopP <- nI
-    pure (slopP, [Sa () slopP szSlop, Wr () (ARnk slopP Nothing) 1, Wr () (ADim slopP 0 Nothing) (fromIntegral n)], Pop () szSlop)
+    pure (slopP, [sac slopP szSlop, Wr () (ARnk slopP Nothing) 1, Wr () (ADim slopP 0 Nothing) (fromIntegral n)], popc szSlop)
   where
-    szSlop=ConstI$16+fromIntegral n*sz
+    szSlop=16+fromIntegral n*sz
 
 plSlop :: Int64 -> Int64 -> [CE] -> CM (Temp, Temp, [CS ()], CS ())
 plSlop sz slopRnk complDims = do
@@ -1196,9 +1194,9 @@ aeval (EApp oTy (EApp _ (Builtin _ (Conv is)) f) x) t
         ++dims
         ++sss
         ++PlProd () szR (Tmp<$>tdims):Ma () a t rnk (Tmp szR) oSz:diml (t, Just a) (Tmp<$>tdims)
-        ++Sa () slopP slopE:Wr () (ARnk slopP Nothing) (ConstI$fromIntegral slopRnk):diml (slopP, Nothing) slopDims
+        ++sac slopP slopE:Wr () (ARnk slopP Nothing) (ConstI$fromIntegral slopRnk):diml (slopP, Nothing) slopDims
         ++xRd=:DP xR (ConstI xRnk):k=:0:loop
-        ++[Pop () slopE])
+        ++[popc slopE])
 aeval e _ = error (show e)
 
 plC :: E (T ()) -> CM ([CS ()] -> [CS ()], CE)
@@ -1672,23 +1670,23 @@ feval (Id _ (FoldGen seed g f n)) t = do
     pure $ plSeed $ plN++[MX () acc (FTmp seedR), MX () x (FTmp seedR), For () k 0 ILt (Tmp nR) (fss++uss), MX () t (FTmp acc)]
 feval e _ = error (show e)
 
-m'pop :: Maybe CE -> [CS ()]
-m'pop = maybe [] ((:[]).Pop ())
+sac t = Sa () t.ConstI
+popc = Pop().ConstI
 
-m'sa :: Temp -> Maybe CE -> [CS ()]
-m'sa t = maybe []  ((:[]).Sa () t)
+m'pop = maybe [] ((:[]).popc)
+m'sa t = maybe []  ((:[]).sac t)
 
 -- TODO: allow this to target multiple registers
-πe :: E (T ()) -> Temp -> CM ([Int64], Maybe CE, [AL], [CS ()]) -- element offsets, size to be popped off the stack, array labels kept live
-πe (EApp (P tys) (Builtin _ Head) xs) t | offs <- szT tys, sz <- last offs, szE <- ConstI sz = do
+πe :: E (T ()) -> Temp -> CM ([Int64], Maybe Int64, [AL], [CS ()]) -- element offsets, size to be popped off the stack, array labels kept live
+πe (EApp (P tys) (Builtin _ Head) xs) t | offs <- szT tys, sz <- last offs = do
     xR <- nI
     (lX, plX) <- aeval xs xR
-    pure (offs, Just szE, [], plX++[CpyE () (TupM t Nothing) (AElem xR 1 0 lX sz) 1 sz])
-πe (EApp (P tys) (Builtin _ Last) xs) t | offs <- szT tys, sz <- last offs, szE <- ConstI sz = do
+    pure (offs, Just sz, [], plX++[CpyE () (TupM t Nothing) (AElem xR 1 0 lX sz) 1 sz])
+πe (EApp (P tys) (Builtin _ Last) xs) t | offs <- szT tys, sz <- last offs = do
     xR <- nI
     (lX, plX) <- aeval xs xR
-    pure (offs, Just szE, [], plX++[CpyE () (TupM t Nothing) (AElem xR 1 (ev (eAnn xs) (xR,lX)-1) lX sz) 1 sz])
-πe (Tup (P tys) es) t | offs <- szT tys, sz <- last offs, szE <- ConstI sz = do
+    pure (offs, Just sz, [], plX++[CpyE () (TupM t Nothing) (AElem xR 1 (ev (eAnn xs) (xR,lX)-1) lX sz) 1 sz])
+πe (Tup (P tys) es) t | offs <- szT tys, sz <- last offs = do
     (ls, ss) <- unzip <$>
         zipWithM (\e off ->
             case eAnn e of
@@ -1696,11 +1694,11 @@ m'sa t = maybe []  ((:[]).Sa () t)
                 I     -> do {(plX, i) <- plC e; pure (Nothing, plX [Wr () (Raw t (ConstI off) Nothing 1) i])}
                 B     -> do {(plX, r) <- plP e; pure (Nothing, plX [WrP () (Raw t (ConstI off) Nothing 1) r])}
                 Arr{} -> do {(pl, (l, r)) <- plA e; pure (l, pl [Wr () (Raw t (ConstI off) Nothing 1) (Tmp r)])}) es offs
-    pure (offs, Just szE, catMaybes ls, concat ss)
-πe (EApp (P tys) (EApp _ (Builtin _ A1) e) i) t | offs <- szT tys, sz <- last offs, szE <- ConstI sz = do
+    pure (offs, Just sz, catMaybes ls, concat ss)
+πe (EApp (P tys) (EApp _ (Builtin _ A1) e) i) t | offs <- szT tys, sz <- last offs = do
     xR <- nI; iR <- nI
     (lX, plX) <- aeval e xR; plI <- eval i iR
-    pure (offs, Just szE, mempty, plX ++ plI ++ [CpyE () (TupM t Nothing) (AElem xR 1 (Tmp iR) lX sz) 1 sz])
+    pure (offs, Just sz, mempty, plX ++ plI ++ [CpyE () (TupM t Nothing) (AElem xR 1 (Tmp iR) lX sz) 1 sz])
 πe (Var (P tys) x) t = do
     st <- gets vars
     pure (szT tys, Nothing, undefined, [t =: Tmp (getT st x)])
@@ -1713,11 +1711,11 @@ m'sa t = maybe []  ((:[]).Sa () t)
     pre <- nI; ttemp <- nI
     (plN,nR) <- plC n
     (offs, mSz, _, plX) <- πe x pre
-    let sz=last offs; szE=ConstI sz
+    let sz=last offs
     (_, ss) <- writeF f [IPA pre] (IT t)
     i <- nI
     let loop=For () i 0 ILt nR (ss++[CpyE () (TupM ttemp Nothing) (TupM t Nothing) 1 sz, CpyE () (TupM pre Nothing) (TupM ttemp Nothing) 1 sz])
-    pure (offs, Just szE, [], m'sa pre mSz++plX++plN [Sa () ttemp szE, loop, Pop () szE]++m'pop mSz)
+    pure (offs, Just sz, [], m'sa pre mSz++plX++plN [sac ttemp sz, loop, popc sz]++m'pop mSz)
 πe e _ = error (show e)
 
 fourth f ~(x,y,z,w) = (x,y,z,f w)
