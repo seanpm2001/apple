@@ -79,7 +79,7 @@ aR8 t = do
 aR :: IR.Temp -> WM [AArch64 AbsReg FAbsReg F2Abs ()]
 aR t = do
     tϵ <- nextI
-    pl <- eval (IR.IB Op.IRem (IR.Reg t) 16) (IR.ITemp tϵ)
+    pl <- eval (32-(IR.IB Op.IRem (IR.Reg t) 16)) (IR.ITemp tϵ)
     pure $ pl ++ [AddRR () t' t' (IReg tϵ)]
   where t'=absReg t
 
