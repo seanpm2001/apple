@@ -182,7 +182,7 @@ data CS a = For { lann :: a, ixVar :: Temp, eLow :: CE, loopCond :: IRel, eUpper
           | Ifn't { lann :: a, scond :: PE, branch :: [CS a] }
           | If { lann :: a, scond :: PE, iBranch, eBranch :: [CS a] }
           | Sa8 { lann :: a, temp :: Temp, alloc8 :: CE } | Pop8 { lann :: a, aBytes :: CE }
-          -- | Sa { lann :: a, temp :: Temp, allocBytes :: CE } | Pop { lann :: a, aBytes :: CE }
+          | Sa { lann :: a, temp :: Temp, allocBytes :: CE } | Pop { lann :: a, aBytes :: CE }
           | Cmov { lann :: a, scond :: PE, tdest :: Temp, src :: CE }
           | Fcmov { lann :: a, scond :: PE, fdest :: FTemp, fsrc :: CFE FTemp Double CE }
           -- TODO: Fcneg?
@@ -225,6 +225,8 @@ pL f (CpyE l a a' e n)      = "cpy" <+> pretty a <> comma <+> pretty a' <+> pare
 pL f (CpyD l a a' e)        = "cpydims" <+> pretty a <+> pretty a' <+> pretty e <> f l
 pL f (Sa8 l t e)            = pretty t <+> "=" <+> "salloc" <> parens (pretty e) <> f l
 pL f (Pop8 l e)             = "pop" <+> pretty e <> f l
+pL f (Sa l t e)             = pretty t <+> "=" <+> "salloc" <> parens (pretty e) <> f l
+pL f (Pop l e)              = "pop" <+> pretty e <> f l
 pL f (Cmov l p t e)         = "if" <+> parens (pretty p) <+> lbrace <#> indent 4 (pretty t <+> "=" <+> pretty e) <#> rbrace <> f l
 pL f (Fcmov l p t e)        = "if" <+> parens (pretty p) <+> lbrace <#> indent 4 (pretty t <+> "=" <+> pretty e) <#> rbrace <> f l
 pL f (Cset l p t)           = pretty t <+> "=" <+> pretty p <> f l

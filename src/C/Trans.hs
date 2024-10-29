@@ -1673,8 +1673,8 @@ feval e _ = error (show e)
 sac t = Sa8 () t.ConstI
 popc = Pop8().ConstI
 
-sa sz | sz `rem` 8 == 0 = Sa8 ()
-pop sz | sz `rem` 8 == 0 = Pop8 ()
+sa sz | sz `rem` 8 == 0 = Sa8 () | otherwise = Sa ()
+pop sz | sz `rem` 8 == 0 = Pop8 () | otherwise = Pop ()
 
 m'pop = maybe [] ((:[]).popc)
 m'sa t = maybe []  ((:[]).sac t)

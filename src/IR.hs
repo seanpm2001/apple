@@ -69,8 +69,10 @@ data Stmt = L Label
           | Wr AE Exp | WrF AE FExp | WrB AE Exp
           | Cmov Exp Temp Exp | Fcmov Exp FTemp FExp
           | Cset Temp Exp
-          | Sa8 Temp Exp -- register, size
-          | Pop8 Exp -- pop salloc
+          | Sa8 Temp Exp
+          | Pop8 Exp
+          | Sa Temp Exp -- register, size
+          | Pop Exp -- pop salloc
           | Cpy AE AE Exp
           | Cpy1 AE AE Exp
           | C Label | R Label
@@ -90,6 +92,8 @@ instance Pretty Stmt where
     pretty (Cmov p t e)  = parens ("cmov" <+> pretty p <+> pretty t <+> pretty e)
     pretty (Fcmov p t e) = parens ("fcmov" <+> pretty p <+> pretty t <+> pretty e)
     pretty RA{}          = parens "return-array"
+    pretty (Sa t e)      = parens ("salloc" <+> pretty t <+> ":" <+> pretty e)
+    pretty (Pop e)       = parens ("spop" <+> pretty e)
     pretty (Sa8 t e)     = parens ("salloc" <+> pretty t <+> ":" <+> pretty e)
     pretty (Pop8 e)      = parens ("spop" <+> pretty e)
     pretty (Cpy p p' e)  = parens ("cpy" <+> pretty p <> "," <+> pretty p' <+> pretty e)

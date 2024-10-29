@@ -247,6 +247,8 @@ uses (SZ _ _ _ e (Just l)) = sinsert l (uE e)
 uses (SZ _ _ _ e Nothing)  = uE e
 uses (Pop8 _ e)            = uE e
 uses (Sa8 _ _ e)           = uE e
+uses (Pop _ e)             = uE e
+uses (Sa _ _ e)            = uE e
 uses (CpyD _ d s n)        = uA d<>uA s<>uE n
 uses (CpyE _ d s n _)      = uA d<>uA s<>uE n
 

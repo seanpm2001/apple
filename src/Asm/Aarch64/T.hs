@@ -71,13 +71,17 @@ nextF = FReg <$> nextI
 irToAarch64 :: IR.WSt -> [IR.Stmt] -> (Int, [AArch64 AbsReg FAbsReg F2Abs ()])
 irToAarch64 st = swap . second IR.wtemps . flip runState st . foldMapA ir
 
--- only needs to be "quadword aligned" when it is the base register for load/store instructions
-aR :: AbsReg -> WM [AArch64 AbsReg FAbsReg F2Abs ()]
+aR8 :: AbsReg -> WM [AArch64 AbsReg FAbsReg F2Abs ()]
+aR8 t = do
+    tϵ <- nR
+    pure [AddRC () tϵ t 8, TstI () t (BM 1 3), Csel () t tϵ t Neq]
+
+aR :: IR.Temp -> WM [AArch64 AbsReg FAbsReg F2Abs ()]
 aR t = do
-    l <- nextL
-    -- FIXME: bool-tuples are size 9 &c.
-    -- (this would crash on stack-allocated arrays of bools...)
-    pure [TstI () t (BM 1 3), Bc () Eq l, AddRC () t t 8, Label () l]
+    tϵ <- nextI
+    pl <- eval (IR.IB Op.IRem (IR.Reg t) 16) (IR.ITemp tϵ)
+    pure $ pl ++ [AddRR () t' t' (IReg tϵ)]
+  where t'=absReg t
 
 plF :: IR.FExp -> WM ([AArch64 AbsReg FAbsReg F2Abs ()] -> [AArch64 AbsReg FAbsReg F2Abs ()], FAbsReg)
 plF (IR.FReg t) = pure (id, fabsReg t)
@@ -97,18 +101,32 @@ ir (IR.MT t e)   = eval e t
 ir (IR.Ma _ t e) = do {r <- nR; plE <- eval e IR.C0; pure $ plE ++ puL ++ [AddRC () FP ASP 16, MovRCf () r Malloc, Blr () r, MovRR () (absReg t) CArg0] ++ poL}
 ir (IR.Free t) = do {r <- nR; pure $ puL ++ [MovRR () CArg0 (absReg t), AddRC () FP ASP 16, MovRCf () r Free, Blr () r] ++ poL}
 ir (IR.Sa8 t (IR.ConstI i)) | Just u <- mu16 (sai i) = pure [SubRC () ASP ASP u, MovRR () (absReg t) ASP]
-ir (IR.Sa8 t (IR.Reg r)) = let r'=absReg r in do {plR <- aR r'; pure $ plR++[SubRR () ASP ASP (absReg r), MovRR () (absReg t) ASP]}
+ir (IR.Sa8 t (IR.Reg r)) = let r'=absReg r in do {plR <- aR8 r'; pure $ plR++[SubRR () ASP ASP (absReg r), MovRR () (absReg t) ASP]}
 ir (IR.Sa8 t e) = do
     r <- nextI; plE <- eval e (IR.ITemp r)
     let r'=IReg r
-    plR <- aR r'
+    plR <- aR8 r'
+    pure $ plE ++ plR ++ [SubRR () ASP ASP r', MovRR () (absReg t) ASP]
+ir (IR.Sa t e) = do
+    r <- nextI
+    let irr=IR.ITemp r
+    plE <- eval e irr
+    let r'=IReg r
+    plR <- aR irr
     pure $ plE ++ plR ++ [SubRR () ASP ASP r', MovRR () (absReg t) ASP]
 ir (IR.Pop8 (IR.ConstI i)) | Just u <- mu16 (sai i) = pure [AddRC () ASP ASP u]
-ir (IR.Pop8 (IR.Reg r)) = let r'=absReg r in do {plR <- aR r'; pure $ plR ++ [AddRR () ASP ASP r']}
+ir (IR.Pop8 (IR.Reg r)) = let r'=absReg r in do {plR <- aR8 r'; pure $ plR ++ [AddRR () ASP ASP r']}
 ir (IR.Pop8 e) = do
     r <- nextI; plE <- eval e (IR.ITemp r)
     let r'=IReg r
-    plR <- aR r'
+    plR <- aR8 r'
+    pure $ plE ++ plR ++ [AddRR () ASP ASP r']
+ir (IR.Pop e) = do
+    r <- nextI
+    let irr=IR.ITemp r
+    plE <- eval e irr
+    let r'=IReg r
+    plR <- aR irr
     pure $ plE ++ plR ++ [AddRR () ASP ASP r']
 ir (IR.Wr (IR.AP t Nothing _) e) = do
     (plE,r) <- plI e
