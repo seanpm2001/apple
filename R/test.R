@@ -18,6 +18,9 @@ stopifnot(all(run(sliding_mean,seq(0,10,1.0))==c(3,4,5,6,7)))
 cat<-jit("[x++(y::Vec n int)]")
 stopifnot(all(run(cat,as.integer(c(1,1)),as.integer(c(0,2,3)))==c(1,1,0,2,3)))
 
+any1<-jit("λa. (λbs. ((∨)/ₒ #f bs)`{1∘[2]} a)")
+# run(any1,matrix(c(FALSE,FALSE,FALSE,TRUE),2))
+
 any<-jit("λbs. (∨)/ₒ #f bs :: bool")
 stopifnot(run(any,c(FALSE,FALSE,FALSE,TRUE)))
 
