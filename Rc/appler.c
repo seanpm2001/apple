@@ -102,6 +102,7 @@ SEXP asm_R(r a) {
 SEXP run_R(SEXP args){
     args=CDR(args);
     SEXP rc=CAR(args);
+    if(TYPEOF(rc)!=EXTPTRSXP){SEXP e=mkString("First argument of run must be a JIT-compiled function.");R e;};
     AppleC* c=(AppleC*)(R_ExternalPtrAddr(rc));
     FnTy* ty=c->ty;U fp=c->code;ffi_cif* cif=c->ffi;
     SEXP r;
