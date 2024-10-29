@@ -139,6 +139,7 @@ instance Pretty Builtin where
     pretty Plus      = "+"
     pretty Fold      = "/"
     pretty FoldS     = "/ₒ"
+    pretty Foldl     = "/l"
     pretty FoldA     = "/*"
     pretty Times     = "*"
     pretty FRange    = "𝒻"
@@ -216,6 +217,7 @@ instance Pretty Builtin where
     pretty Sr        = ">>"
     pretty Sl        = "<<"
     pretty C         = "∴"
+    pretty Outer     = "⊗"
 
 data Builtin = Plus | Minus | Times | Div | IntExp | Exp | Log
              | Eq | Neq | Gt | Lt | Gte | Lte | CatE | IDiv | Mod
@@ -355,7 +357,7 @@ instance PS (E a) where
     ps _ (Builtin _ op) | isBinOp op                              = parens (pretty op)
     ps _ (Builtin _ b)                                            = pretty b
     ps d (EApp _ (Builtin _ (TAt i)) e)                           = parensp (d>9) (ps 10 e <> "->" <> pretty i)
-    ps _ (EApp _ (Builtin _ op) e0) | isBinOp op                  = parens (pretty e0 <+> pretty op)
+    ps _ (EApp _ (Builtin _ op) e0) | isBinOp op                  = parens (ps 10 e0 <+> pretty op)
     ps d (EApp _ (EApp _ (Builtin _ op) e0) e1) | Just d' <- mPrec op = parensp (d>d') (ps (d'+1) e0 <+> pretty op <+> ps (d'+1) e1)
     ps _ (EApp _ (EApp _ (Builtin _ op) e0) e1) | isBinOp op      = parens (ps 10 e0 <+> pretty op <+> ps 10 e1)
     ps _ (EApp _ (EApp _ (EApp _ (Builtin _ Iter) e0) e1) e2)     = parens (ps 10 e0 <> "^:" <+> ps 10 e1 <+> ps 11 e2)
@@ -364,8 +366,9 @@ instance PS (E a) where
     ps _ (EApp _ (EApp _ (EApp _ (Builtin _ FoldA) e0) e1) e2)    = parens (pretty e0 <> "/*" <+> pretty e1 <+> pretty e2)
     ps _ (EApp _ (EApp _ (EApp _ (Builtin _ ScanS) e0) e1) e2)    = parens (pretty e0 <+> "Λₒ" <+> pretty e1 <+> pretty e2)
     ps _ (EApp _ (EApp _ (EApp _ (Builtin _ Zip) e0) e1) e2)      = parens (pretty e0 <+> "`" <+> pretty e1 <+> pretty e2)
-    ps _ (EApp _ (EApp _ (EApp _ (Builtin _ Outer) e0) e1) e2)    = parens (pretty e1 <+> ps 10 e0 <+> "⊗" <+> pretty e2)
-    ps _ (EApp _ (EApp _ (Builtin _ op@Rank{}) e0) e1)            = parens (pretty e0 <+> pretty op <+> pretty e1)
+    ps _ (EApp _ (EApp _ (EApp _ (Builtin _ Outer) e0) e1) e2)    = parens (pretty e1 <+> ps 10 e0 <> "⊗" <+> pretty e2)
+    ps _ (EApp _ (Builtin _ Outer) e0)                            = parens (pretty e0 <> "⊗")
+    ps _ (EApp _ (EApp _ (Builtin _ op@Rank{}) e0) e1)            = parens (ps 10 e0 <+> pretty op <+> ps 10 e1)
     ps _ (EApp _ (EApp _ (Builtin _ op@Conv{}) e0) e1)            = parens (pretty e0 <+> pretty op <+> pretty e1)
     ps _ (EApp _ (EApp _ (Builtin _ (DI i)) e0) e1)               = parens (pretty e0 <+> "\\`" <> pretty i <+> pretty e1)
     ps _ (EApp _ (EApp _ (Builtin _ Succ) e0) e1)                 = parens (pretty e0 <+> "\\~" <+> pretty e1)
