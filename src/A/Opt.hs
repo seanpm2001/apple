@@ -124,12 +124,12 @@ optA (EApp l0 (EApp _ (Builtin _ Succ) f) (EApp _ (EApp _ (Builtin _ Map) g) xs)
         pure (EApp l0 (EApp undefined (Builtin undefined Succ) f2g) xs')
 optA (EApp l0 (EApp _ (Builtin _ Map) f) (EApp _ (EApp _ (Builtin _ Map) g) xs))
     | (Arrow _ fCod) <- eAnn f
-    , (Arrow gDom _) <- eAnn g = do
+    , (Arrow gDom gCod) <- eAnn g = do
         f' <- optA f; g' <- optA g
         xs' <- optA xs
         x <- nextU "x" gDom
         let vx=Var gDom x
-            fog=Lam (gDom ~> fCod) x (EApp undefined f' (EApp undefined g' vx))
+            fog=Lam (gDom ~> fCod) x (EApp fCod f' (EApp gCod g' vx))
         pure (EApp l0 (EApp undefined (Builtin undefined Map) fog) xs')
 optA (EApp l0 (EApp _ (Builtin _ Fold) op) (EApp _ (EApp _ (Builtin _ Map) f) x))
     | fTy@(Arrow dom fCod) <- eAnn f
