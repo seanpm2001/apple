@@ -242,7 +242,7 @@ langHelp = liftIO $ putStr $ concat
     , lOption "~" "reverse" "¬,⊻,∧,∨" "logical"
     , lOption "♭" "flatten" "♮" "add dimension"
     , lOption "⩪" "indices of" "§, #." "filter"
-    , lOption "👁️" "identity m" "(i × j)" "dimensions"
+    , lOption "👁️" "identity matrix" "(i × j)" "dimensions"
     , lOption "gen." "generate" "}:?" "init"
     , lOption "{:?" "tail" "∴" "compose"
     ]
