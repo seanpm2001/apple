@@ -169,6 +169,7 @@ loop = do
         Just (":ann":e)        -> annR (unwords e) *> loop
         Just (":b":e)          -> benchE (unwords e) *> loop
         Just (":bench":e)      -> benchE (unwords e) *> loop
+        Just ("⏱":e)          -> benchE (unwords e) *> loop
         Just (":ir":e)         -> irR (unwords e) *> loop
         Just (":c":e)          -> cR (unwords e) *> loop
         Just (":cmm":e)        -> cR (unwords e) *> loop

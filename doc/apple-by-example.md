@@ -536,6 +536,14 @@ One can use `⅟` for the reciprocal, viz.
 λx. 1.0 % (1 + 2.718281828459045 ** _ x) : float → float
 ```
 
+### Time
+
+In the REPL, one can use `⏱` in place of `:bench`, i.e.
+
+```
+⏱ [((+)/x)%ℝ(:x)]\`7 (𝒻 0 999 1000)
+```
+
 # Examples
 
 ## Linear Regression
