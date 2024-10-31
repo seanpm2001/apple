@@ -62,7 +62,6 @@ instance Semigroup (Subst a) where
 
 instance Monoid (Subst a) where
     mempty = Subst IM.empty IM.empty IM.empty
-    mappend = (<>)
 
 instance NFData a => NFData (TyE a) where
 
