@@ -174,14 +174,14 @@ data CS a = For { lann :: a, ixVar :: Temp, eLow :: CE, loopCond :: IRel, eUpper
           | WrP { lann :: a, addr :: ArrAcc , wrB :: PE }
           | Ma { lann :: a, label :: AL, temp :: Temp, rank :: CE, nElem :: CE, elemSz :: !Int64 }
           | Free Temp
-          | MaΠ { lann :: a, label :: AL, temp :: Temp, aBytes :: CE }
+          | MaΠ { lann :: a, label :: AL, temp :: Temp, aBytes :: Int64 }
           | RA { lann :: a, label :: !AL } -- return array no-op (takes label)
           | CpyE { lann :: a, aDest, aSrc :: ArrAcc, nElem :: CE, elemSz :: !Int64 } -- copy elems
           | CpyD { lann :: a, aDest, aSrc :: ArrAcc, nDims :: CE } -- copy dims
           | Ifn't { lann :: a, scond :: PE, branch :: [CS a] }
           | If { lann :: a, scond :: PE, iBranch, eBranch :: [CS a] }
-          | Sa8 { lann :: a, temp :: Temp, alloc8 :: CE } | Pop8 { lann :: a, aBytes :: CE }
-          | Sa { lann :: a, temp :: Temp, allocBytes :: CE } | Pop { lann :: a, aBytes :: CE }
+          | Sa8 { lann :: a, temp :: Temp, alloc8 :: CE } | Pop8 { lann :: a, aeBytes :: CE }
+          | Sa { lann :: a, temp :: Temp, allocBytes :: CE } | Pop { lann :: a, aeBytes :: CE }
           | Cmov { lann :: a, scond :: PE, tdest :: Temp, src :: CE }
           | Fcmov { lann :: a, scond :: PE, fdest :: FTemp, fsrc :: CFE FTemp Double CE }
           -- TODO: Fcneg?
