@@ -120,12 +120,12 @@ library
 
     default-language:   Haskell2010
     default-extensions:
-        LambdaCase
+        DeriveFoldable DeriveFunctor LambdaCase
     other-extensions:
         DeriveGeneric DeriveAnyClass OverloadedStrings StandaloneDeriving
-        RankNTypes FlexibleContexts DeriveFoldable DeriveFunctor
-        ScopedTypeVariables TupleSections BinaryLiterals MagicHash
-        MultiParamTypeClasses GeneralizedNewtypeDeriving
+        RankNTypes FlexibleContexts TupleSections MagicHash
+        ScopedTypeVariables BinaryLiterals MultiParamTypeClasses
+        GeneralizedNewtypeDeriving
 
     ghc-options:
         -Wall -fno-warn-missing-signatures -Wno-x-partial
