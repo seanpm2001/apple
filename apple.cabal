@@ -54,6 +54,7 @@ library
         Nm
         U
         I
+        Sh
         L
         Parser
         CGen

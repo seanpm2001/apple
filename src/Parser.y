@@ -21,6 +21,7 @@ import Nm hiding (loc)
 import A
 import L
 import Prettyprinter (Pretty (pretty), (<+>), concatWith, squotes)
+import Sh
 
 }
 
@@ -209,16 +210,16 @@ I :: { I AlexPosn }
 
 Sh :: { Sh AlexPosn }
    : nil { Nil }
-   | I cons Sh { A.Cons $1 $3 }
+   | I cons Sh { Sh.Cons $1 $3 }
    | name { SVar $1 }
    | parens(Sh) { $1 }
-   | tupBy(I,ixTimes) { foldl (flip A.Cons) Nil (snd $1) }
+   | tupBy(I,ixTimes) { foldl (flip Sh.Cons) Nil (snd $1) }
 
 T :: { T AlexPosn }
   : arr Sh T { Arr $2 $3 }
-  | vec I T { Arr ($2 `A.Cons` Nil) $3 }
-  | matrix six comma six T { Arr ((Ix (loc $2) (six $2)) `A.Cons` (Ix (loc $4) (six $4)) `A.Cons` Nil) $5 }
-  | matrix T {% do {i <- lift $ freshName "i"; j <- lift $ freshName "j"; pure $ Arr (IVar $1 i `A.Cons` IVar $1 j `A.Cons` Nil) $2 } }
+  | vec I T { Arr ($2 `Sh.Cons` Nil) $3 }
+  | matrix six comma six T { Arr ((Ix (loc $2) (six $2)) `Sh.Cons` (Ix (loc $4) (six $4)) `Sh.Cons` Nil) $5 }
+  | matrix T {% do {i <- lift $ freshName "i"; j <- lift $ freshName "j"; pure $ Arr (IVar $1 i `Sh.Cons` IVar $1 j `Sh.Cons` Nil) $2 } }
   | int { I } | bool { A.B } | float { F }
   | parens(T) { $1 }
   | T arrow T { A.Arrow $1 $3 }

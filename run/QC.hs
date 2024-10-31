@@ -17,6 +17,7 @@ import           Foreign.Storable                 (poke, sizeOf)
 import           Hs.A
 import           Nm
 import           Prettyprinter                    (Pretty (..))
+import           Sh
 import           Test.QuickCheck.Gen              (Gen, chooseAny, chooseInt64, frequency, genDouble, generate, vectorOf)
 import           U
 

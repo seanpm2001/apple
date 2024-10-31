@@ -9,6 +9,7 @@ import qualified Data.IntMap                      as IM
 import           Lens.Micro                       (Lens')
 import           Lens.Micro.Mtl                   (modifying, use)
 import           Nm
+import           Sh
 import           U
 
 data TR = TR { maxT :: Int, boundTV, boundSh, boundIx :: IM.IntMap Int }

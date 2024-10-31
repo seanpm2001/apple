@@ -3,6 +3,7 @@
 module Prettyprinter.Ext ( (<#>), (<?>), (<!>)
                          , PS (..)
                          , parensp
+                         , appPrec
                          , prettyLines
                          , tupledBy
                          , ptxt
@@ -33,6 +34,8 @@ infixr 5 <!>
 (<!>) x y = flatAlt (x <> hardline <> indent 4 y) (x <> space <> y)
 
 class PS a where ps :: Int -> a -> Doc ann
+
+appPrec=10::Int
 
 parensp True=parens; parensp False=id
 

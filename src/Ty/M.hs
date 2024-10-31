@@ -9,6 +9,7 @@ import           Control.DeepSeq     (NFData)
 import           Data.Foldable       (asum)
 import           GHC.Generics        (Generic)
 import           Prettyprinter       (Pretty (..), squotes, (<+>))
+import           Sh
 
 data RE = MR (E (T ())) (T ()) | Unflat (E (T ())) (T ()) | UT (E (T ())) (T ()) | IS (Sh ()) | ES (Sh ()) deriving (Generic)
 

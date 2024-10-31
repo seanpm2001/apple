@@ -7,6 +7,7 @@ import           A
 import           Data.Bits ((.<<.), (.>>.))
 import           R
 import           R.R
+import           Sh
 
 -- TODO zip-of-map->zip
 

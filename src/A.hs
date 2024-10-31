@@ -4,7 +4,6 @@
 -- | AST
 module A ( T (..)
          , (~>)
-         , I (..), Sh (..)
          , C (..)
          , E (..)
          , Idiom (..)
@@ -25,25 +24,7 @@ import           Nm
 import           Prettyprinter     (Doc, Pretty (..), align, braces, brackets, colon, comma, encloseSep, flatAlt, group, hsep, lbrace, lbracket, parens, pipe, punctuate, rbrace,
                                     rbracket, tupled, vsep, (<+>))
 import           Prettyprinter.Ext
-
-instance Pretty (I a) where pretty=ps 0
-
-instance PS (I a) where
-    ps _ (Ix _ i)        = pretty i
-    ps _ (IVar _ n)      = pretty n
-    ps d (StaPlus _ i j) = parensp (d>5) (ps 6 i <+> "+" <+> ps 6 j)
-    ps d (StaMul _ i j)  = parensp (d>7) (ps 8 i <+> "*" <+> ps 8 j)
-    ps _ (IEVar _ n)     = "#" <> pretty n
-
-data I a = Ix { ia :: a, ii :: !Int }
-         | IVar { ia :: a, ixn :: Nm a }
-         | IEVar { ia :: a , ie :: Nm a } -- existential
-         | StaPlus { ia :: a, ix0, ix1 :: I a }
-         | StaMul { ia :: a, ix0, ix1 :: I a }
-         deriving (Functor, Generic)
-
-instance Show (I a) where
-    show = show . pretty
+import           Sh
 
 data C = IsNum | IsOrd | IsEq
        | HasBits deriving (Generic, Eq, Ord)
@@ -59,35 +40,6 @@ instance Pretty C where
 instance Show C where show=show.pretty
 
 tupledArr = group . encloseSep (flatAlt "⟨ " "⟨") (flatAlt " ⟩" "⟩") ", "
-
-data Sh a = Nil
-          | SVar (Nm a)
-          | Cons (I a) (Sh a)
-          | Rev (Sh a)
-          | Cat (Sh a) (Sh a)
-          | Π (Sh a)
-          deriving (Functor, Generic)
-
-infixr 8 `Cons`
-
-instance Show (Sh a) where show=show.pretty
-
-instance Pretty (Sh a) where pretty=ps 0
-
-unroll Nil         = Just []
-unroll (Cons i sh) = (i:)<$>unroll sh
-unroll _           = Nothing
-
-instance PS (Sh a) where
-    ps _ (SVar n)    = pretty n
-    ps _ sh@Cons{}   | Just is <- unroll sh = tupledBy " × " (pretty <$> is)
-    ps d (Cons i sh) = parensp (d>6) (pretty i <+> "`Cons`" <+> pretty sh)
-    ps _ Nil         = "Nil"
-    ps d (Cat s s')  = parensp (d>5) (ps 6 s <+> "⧺" <+> ps 6 s')
-    ps d (Rev s)     = parensp (d>appPrec) ("rev" <+> ps (appPrec+1) s)
-    ps d (Π s)       = parensp (d>appPrec) ("Π" <+> ps (appPrec+1) s)
-
-appPrec=10
 
 infixr 0 ~>
 (~>) = Arrow
@@ -434,6 +386,4 @@ instance NFData Builtin where
 instance NFData ResVar where
 instance NFData Idiom where
 instance NFData a => NFData (E a) where
-instance NFData a => NFData (I a) where
-instance NFData a => NFData (Sh a) where
 instance NFData a => NFData (T a) where

@@ -29,6 +29,7 @@ import           Nm
 import           Nm.IntMap
 import           Prettyprinter                    (Doc, Pretty (..), hardline, indent, squotes, (<+>))
 import           Prettyprinter.Ext
+import           Sh
 import           Ty.Clone
 import           U
 

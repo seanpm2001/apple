@@ -22,6 +22,7 @@ import           GHC.Float                        (castDoubleToWord64)
 import           Nm
 import           Nm.IntMap
 import           Op
+import           Sh
 
 data CSt = CSt { tempU       :: !Int
                , arrU        :: !AL
