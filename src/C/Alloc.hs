@@ -3,10 +3,13 @@ module C.Alloc ( live, frees ) where
 import           C
 import           C.CF
 import           CF
-import qualified Data.IntMap as IM
-import qualified Data.IntSet as IS
-import           Data.Maybe  (mapMaybe)
+import           CF.AL
+import           Control.Monad.Trans.State.Strict (State)
+import qualified Data.IntMap                      as IM
+import qualified Data.IntSet                      as IS
+import           Data.Maybe                       (mapMaybe)
 import           LR
+import           Sh
 
 frees :: IM.IntMap Temp -> [CS ()] -> [CS Liveness]
 frees a = iF a.live
@@ -15,6 +18,30 @@ live :: [CS ()] -> [CS Liveness]
 live = fmap (fmap liveness) . (\(is,isns,lm) -> reconstruct is lm isns) . cfC
 
 sus = error "Array only freed at the beginning of one branch of the conditional."
+
+type Subst = IM.IntMap AL
+
+data Slots = Ss { livest :: !IS.IntSet, mLive :: [(AL, Sh ())] }
+
+ilt :: I a -> I a -> Bool
+ilt (Ix _ i) (Ix _ j)                     = i <= j
+ilt (IVar _ i) (IVar _ i')                = i == i'
+ilt (StaPlus _ i0 i1) (StaPlus _ i0' i1') | ilt i0 i0' && ilt i1 i1' = True
+ilt (StaMul _ i0 i1) (StaMul _ i0' i1')   | ilt i0 i0' && ilt i1 i1' = True
+ilt _ _                                   = False
+
+fits :: Sh a -> Sh a -> Bool
+fits (ix `Cons` Nil) (ix' `Cons` Nil) = ilt ix ix'
+fits (Rev sh0) (Rev sh1)              = fits sh0 sh1
+fits (SVar sv0) (SVar sv1)            = sv0 == sv1
+fits (Cat sh0 sh1) (Cat sh0' sh1')    | fits sh0 sh0' && fits sh1 sh1' = True
+fits _ _                              = False
+
+-- aalloc in IR for reusing an offset? or just start w/ same (e-z)
+--
+-- every time we encounter an allocation, make note. Then when its live interval is over, make note of that
+aa :: [CS Liveness] -> State Slots [CS Liveness]
+aa = undefined
 
 iF :: IM.IntMap Temp -> [CS Liveness] -> [CS Liveness]
 iF a = gg where
