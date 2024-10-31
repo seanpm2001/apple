@@ -1,6 +1,5 @@
 {-# LANGUAGE BinaryLiterals #-}
 {-# LANGUAGE MagicHash      #-}
-{-# LANGUAGE TupleSections  #-}
 
 -- https://developer.arm.com/documentation/ddi0602/2021-12/Base-Instructions
 module Asm.Aarch64.Byte ( allFp, assembleCtx, dbgFp ) where

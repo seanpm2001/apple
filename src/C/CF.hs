@@ -1,5 +1,3 @@
-{-# LANGUAGE TupleSections #-}
-
 module C.CF ( cfC ) where
 
 import           C

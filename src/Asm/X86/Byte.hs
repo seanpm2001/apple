@@ -3,8 +3,6 @@
 --
 -- https://wiki.osdev.org/X86-64_Instruction_Encoding
 
-{-# LANGUAGE TupleSections #-}
-
 module Asm.X86.Byte ( allFp, assemble, assembleCtx, dbgFp ) where
 
 import           Asm.M

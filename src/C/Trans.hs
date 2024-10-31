@@ -1,5 +1,3 @@
-{-# LANGUAGE TupleSections #-}
-
 module C.Trans ( writeC ) where
 
 import           A
