@@ -248,8 +248,8 @@ writeF e [] (FT r) = (Nothing,)<$>feval e r
 writeF e [] (PT r) = (Nothing,)<$>peval e r
 
 m'p :: Maybe (CS (), CS ()) -> [CS ()] -> [CS ()]
-m'p Nothing        = id
-m'p (Just (a,pop)) = (++[pop]).(a:)
+m'p Nothing       = id
+m'p (Just (a,pϵ)) = (++[pϵ]).(a:)
 
 sas :: [Maybe (CS (), CS ())] -> [CS ()] -> [CS ()]
 sas = thread.fmap m'p
