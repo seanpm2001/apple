@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Asm.Aarch64 ( AArch64 (..)
                    , Addr (..)

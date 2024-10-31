@@ -1,7 +1,6 @@
 {
     {-# LANGUAGE DeriveGeneric #-}
     {-# LANGUAGE DeriveAnyClass #-}
-    {-# LANGUAGE OverloadedStrings #-}
     {-# LANGUAGE StandaloneDeriving #-}
     module L ( alexMonadScan
              , alexInitUserState

@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Dbg ( dumpAAbs
            , dumpAarch64
            , dumpAAss

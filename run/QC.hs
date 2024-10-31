@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module QC ( gas, Val (..), freeP ) where
 
 import           A

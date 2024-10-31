@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Sys.DL ( CCtx, MCtx, libc, mem', math' ) where
 
 import           Data.Functor                          (($>))

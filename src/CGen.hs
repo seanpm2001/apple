@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module CGen (CType(..), TTE(..), tCTy, pCty) where
 
 import           A

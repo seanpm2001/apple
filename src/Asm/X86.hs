@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings          #-}
 
 module Asm.X86 ( X86 (..)
                , AbsReg (..), FAbsReg (..), X2Abs (..)

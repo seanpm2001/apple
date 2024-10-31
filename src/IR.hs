@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module IR ( Exp (..), FExp (..)
           , Stmt (..)
           , Temp (..), FTemp (..)

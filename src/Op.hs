@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Op ( FUn (..)
           , FBin (..)
           , IUn (..)

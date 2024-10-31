@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module CF ( ControlAnn (..)
           , UD (..)
           , Liveness (..)

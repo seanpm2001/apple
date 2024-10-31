@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module A.Opt ( optA
              ) where
 

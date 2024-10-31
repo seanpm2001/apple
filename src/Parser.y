@@ -1,6 +1,5 @@
 {
     {-# LANGUAGE DeriveGeneric #-}
-    {-# LANGUAGE OverloadedStrings #-}
     module Parser ( parseWithMaxCtx
                   , ParseE (..)
                   ) where
