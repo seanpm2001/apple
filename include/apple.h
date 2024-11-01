@@ -16,9 +16,11 @@ T apple_aarch64(K char*, T*);
 T apple_dumpir(K char*, T*);
 T apple_print_ts_sz(K char*, S*, T*);
 
-enum apple_t{I_t,F_t,B_t,IA,FA,BA};
+enum apple_at{I_t=1,F_t=2,B_t=3};
 
-TS FnTy {int argc; enum apple_t* args; enum apple_t res;} FnTy;
+TS apple_t {enum apple_at sa; enum apple_at aa; enum apple_at* a_pi;} apple_t;
+
+TS FnTy {int argc; apple_t* args; apple_t res;} FnTy;
 
 Z void freety(FnTy* x){free(x->args);free(x);}
 

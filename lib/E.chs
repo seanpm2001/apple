@@ -23,18 +23,17 @@ import System.Info (arch)
 #include <sys/mman.h>
 #include <apple.h>
 
-data FnTy
+data CT; data FnTy
 data JitCtx
 
 {# fun memcpy as ^ { castPtr `Ptr a', castPtr `Ptr a', coerce `CSize' } -> `Ptr a' castPtr #}
 
-{# enum apple_t as CT {} #}
+{# enum apple_at as CA {} #}
 
-ct :: CType -> CT
+ct :: CAt -> CA
 ct CR = F_t; ct CI = I_t; ct CB = B_t
-ct Af = FA; ct Ai = IA; ct Ab = BA
 
-t32 :: CType -> CInt
+t32 :: CAt -> CInt
 t32 = fromIntegral.fromEnum.ct
 
 ppn :: T.Text -> Ptr CSize -> IO CString
@@ -97,9 +96,20 @@ apple_ty src errPtr = do
                     sp <- mallocBytes {# sizeof FnTy #}
                     ip <- mallocBytes (argc * sizeOf (undefined::CInt))
                     {# set FnTy.argc #} sp (fromIntegral argc)
-                    {# set FnTy.res #} sp (t32 to)
-                    zipWithM_ (\ti n -> do
-                        pokeByteOff ip (n * sizeOf (undefined::CInt)) (t32 ti)) tis [0..]
+                    case to of
+                        SC tao -> do
+                            {# set FnTy.res.sa #} sp (t32 tao)
+                            {# set FnTy.res.aa #} sp 0
+                            {# set FnTy.res.a_pi #} sp nullPtr
+                        AC tao -> do
+                            {# set FnTy.res.sa #} sp 0
+                            {# set FnTy.res.aa #} sp (t32 tao)
+                            {# set FnTy.res.a_pi #} sp nullPtr
+                    zipWithM_ (\ti n ->
+                        case ti of
+                            -- FIXME: wait no it's a struct now...
+                            SC tai -> pokeByteOff ip (n*sizeOf (undefined::CInt)) (t32 tai)
+                            AC tao -> pokeByteOff ip (n*sizeOf (undefined::CInt)) (t32 tao)) tis [0..]
                     {# set FnTy.args #} sp ip
                     pure sp
 
