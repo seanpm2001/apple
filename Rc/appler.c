@@ -96,6 +96,8 @@ SEXP asm_R(r a) {
     R mkString(ret);
 }
 
+#define ArgTy(t,f,i,b,fa,ia,ba) $(t.sa,switch(t.sa){C(F_t,f) C(I_t,i) C(B_t,b)})if(t.aa){switch(t.aa){C(F_t,fa) C(I_t,ia) C(B_t,ba)}};
+
 SEXP run_R(SEXP args){
     args=CDR(args);
     SEXP rc=CAR(args);
@@ -108,19 +110,14 @@ SEXP run_R(SEXP args){
     uint8_t fs=0;
     for(int k=0;k<argc;k++){
         args=CDR(args);SEXP arg=CAR(args);
-        if(ty->args[k].sa){
-            switch(ty->args[k].sa){
-                C(F_t,SA(F,xf);*xf=asReal(arg);vals[k]=xf;)
-                C(I_t,SA(J,xi);*xi=(J)asInteger(arg);vals[k]=xi;)
-                C(B_t,SA(B,xb);*xb=(B)asLogical(arg);vals[k]=xb;)
-            }
-        } else if (ty->args[k].aa){
-            switch(ty->args[k].aa){
-                C(F_t,SA(U,x);*x=fr(arg);fs|=1<<k;vals[k]=x;)
-                C(I_t,SA(U,x);*x=fi(arg);vals[k]=x;)
-                C(B_t,SA(U,x);*x=fb(arg);vals[k]=x;)
-            }
-        }
+        ArgTy(ty->args[k],
+            {SA(F,xf);*xf=asReal(arg);vals[k]=xf;},
+            {SA(J,xi);*xi=(J)asInteger(arg);vals[k]=xi;},
+            {SA(B,xb);*xb=(B)asLogical(arg);vals[k]=xb;},
+            {SA(U,x);*x=fr(arg);fs|=1<<k;vals[k]=x;},
+            {SA(U,x);*x=fi(arg);vals[k]=x;},
+            {SA(U,x);*x=fb(arg);vals[k]=x;}
+        )
     }
     ffi_call(cif,fp,ret,vals);
     DO(i,argc,if(fs>>i&1){free(*(U*)vals[i]);})
