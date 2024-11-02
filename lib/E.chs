@@ -12,8 +12,8 @@ import Data.Word (Word8, Word64)
 import Dbg
 import Foreign.C.String (CString)
 import Foreign.C.Types (CInt (..), CSize (..), CChar)
-import Foreign.Marshal.Alloc (mallocBytes)
-import Foreign.Ptr (Ptr, castPtr, castFunPtrToPtr, nullPtr)
+import Foreign.Marshal.Alloc (callocBytes, mallocBytes)
+import Foreign.Ptr (Ptr, castPtr, castFunPtrToPtr, plusPtr, nullPtr)
 import Foreign.Storable (poke, pokeByteOff, sizeOf)
 import Prettyprinter (Doc, Pretty)
 import Prettyprinter.Ext
@@ -23,18 +23,17 @@ import System.Info (arch)
 #include <sys/mman.h>
 #include <apple.h>
 
-data FnTy
+data CT; data FnTy
 data JitCtx
 
 {# fun memcpy as ^ { castPtr `Ptr a', castPtr `Ptr a', coerce `CSize' } -> `Ptr a' castPtr #}
 
-{# enum apple_t as CT {} #}
+{# enum apple_at as CA {} #}
 
-ct :: CType -> CT
+ct :: CAt -> CA
 ct CR = F_t; ct CI = I_t; ct CB = B_t
-ct Af = FA; ct Ai = IA; ct Ab = BA
 
-t32 :: CType -> CInt
+t32 :: CAt -> CInt
 t32 = fromIntegral.fromEnum.ct
 
 ppn :: T.Text -> Ptr CSize -> IO CString
@@ -75,10 +74,8 @@ apple_x86 = harnessString dumpX86G
 
 apple_aarch64 = harnessString dumpAarch64
 
-apple_dumpir :: CString -> Ptr CString -> IO CString
+apple_dumpir, apple_printty :: CString -> Ptr CString -> IO CString
 apple_dumpir = harnessString dumpIR
-
-apple_printty :: CString -> Ptr CString -> IO CString
 apple_printty = harnessString tyExpr
 
 apple_ty :: CString -> Ptr CString -> IO (Ptr FnTy)
@@ -94,14 +91,26 @@ apple_ty src errPtr = do
                 Left te -> do {poke errPtr =<< tcstr (ptxt te); pure nullPtr}
                 Right (tis, to) -> do
                     let argc = length tis
-                    sp <- mallocBytes {# sizeof FnTy #}
-                    ip <- mallocBytes (argc * sizeOf (undefined::CInt))
+                    sp <- callocBytes {# sizeof FnTy #}
+                    ip <- mallocBytes (argc * {# sizeof apple_t #})
                     {# set FnTy.argc #} sp (fromIntegral argc)
-                    {# set FnTy.res #} sp (t32 to)
-                    zipWithM_ (\ti n -> do
-                        pokeByteOff ip (n * sizeOf (undefined::CInt)) (t32 ti)) tis [0..]
+                    case to of
+                        SC tao -> {# set FnTy.res.sa #} sp (t32 tao)
+                        AC tao -> {# set FnTy.res.aa #} sp (t32 tao)
+                    zipWithM_ (\ti n ->
+                        case ti of
+                            SC tai -> do
+                                pokeByteOff (argn ip n) {# offsetof apple_t->sa #} (t32 tai)
+                                pokeByteOff (argn ip n) {# offsetof apple_t->aa #} (0::CInt)
+                                pokeByteOff (argn ip n) {# offsetof apple_t->a_pi #} nullPtr
+                            AC tao -> do
+                                pokeByteOff (argn ip n) {# offsetof apple_t->sa #} (0::CInt)
+                                pokeByteOff (argn ip n) {# offsetof apple_t->aa #} (t32 tao)
+                                pokeByteOff (argn ip n) {# offsetof apple_t->a_pi #} nullPtr) tis [0..]
                     {# set FnTy.args #} sp ip
                     pure sp
+  where 
+    argn p n = p `plusPtr` (n*{# sizeof apple_t #})
 
 cfp = case arch of {"aarch64" -> actxFunP; "x86_64" -> ctxFunP.fst}
 jNull x p = case x of {Nothing -> poke p nullPtr; Just xϵ -> poke p xϵ}

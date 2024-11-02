@@ -15,8 +15,6 @@
 
 // http://adv-r.had.co.nz/C-interface.html
 
-#define $(p,a) if(p){R a;}else
-
 #define ERR(p,msg){if(p==NULL){SEXP er=mkString(msg);free(msg);R er;};}
 #define E(msg){SEXP er=mkString(msg);R er;}
 #define An(x,n,t,ra) J* i_p=x;J n=i_p[1];SEXP ra=PROTECT(allocVector(t,n));
@@ -54,14 +52,13 @@ _ U frb(r a){AM(a,1,x,m,n);B* x_b=x+24;int* b=LOGICAL(a);FC2(x_b,b,B,m,n);R x;}
 _ SEXP rfm(U x) {AR(x,REALSXP,r,m,n);double* d=REAL(r);F* x_f=x+24;CF2(d,x_f,double,m,n);UNPROTECT(1);R r;}
 _ SEXP rbm(U x) {AR(x,LGLSXP,r,m,n);int* b=LOGICAL(r);B* x_b=x+24;CF2(b,x_b,int,m,n);UNPROTECT(1);R r;}
 
-ZU fr(r a){$(Rf_isMatrix(a), frm(a))$(Rf_isVector(a), frv(a)) E("Higher-rank arguments are not supported.")
-}
-ZU fi(r a){$(Rf_isVector(a), fiv(a)) E("Integer arrays are not supported.")}
-ZU fb(r a){$(Rf_isMatrix(a), frb(a))$(Rf_isVector(a), fbv(a)) E("Boolean arrays are not supported.")}
+ZU fr(r a){$(Rf_isMatrix(a), R frm(a))$(Rf_isVector(a), R frv(a)) E("Higher-rank arguments are not supported.")}
+ZU fi(r a){$(Rf_isVector(a), R fiv(a)) E("Integer arrays are not supported.")}
+ZU fb(r a){$(Rf_isMatrix(a), R frb(a))$(Rf_isVector(a), R fbv(a)) E("Boolean arrays are not supported.")}
 
-ZS rf(K U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,rfv(x))$(rnk==2,rfm(x)) E("Higher-rank return values are not supported.")}
-ZS ri(K U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,riv(x)) E("Integer arrays are not supported.")}
-ZS rb(K U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,rbv(x))$(rnk==2,rbm(x)) E("Boolean arrays are not supported.")}
+ZS rf(K U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,R rfv(x))$(rnk==2,R rfm(x)) E("Higher-rank return values are not supported.")}
+ZS ri(K U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,R riv(x)) E("Integer arrays are not supported.")}
+ZS rb(K U x){J* x_i=x;J rnk=x_i[0];$(rnk==1,R rbv(x))$(rnk==2,R rbm(x)) E("Boolean arrays are not supported.")}
 
 SEXP hs_init_R(void) {
     hs_init(0,0);
@@ -111,24 +108,34 @@ SEXP run_R(SEXP args){
     uint8_t fs=0;
     for(int k=0;k<argc;k++){
         args=CDR(args);SEXP arg=CAR(args);
-        switch(ty->args[k]){
-            C(FA,SA(U,x);*x=fr(arg);fs|=1<<k;vals[k]=x;)
-            C(IA,SA(U,x);*x=fi(arg);vals[k]=x;)
-            C(BA,SA(U,x);*x=fb(arg);vals[k]=x;)
-            C(F_t,SA(F,xf);*xf=asReal(arg);vals[k]=xf;)
-            C(I_t,SA(J,xi);*xi=(J)asInteger(arg);vals[k]=xi;)
-            C(B_t,SA(B,xb);*xb=(B)asLogical(arg);vals[k]=xb;)
+        if(ty->args[k].sa){
+            switch(ty->args[k].sa){
+                C(F_t,SA(F,xf);*xf=asReal(arg);vals[k]=xf;)
+                C(I_t,SA(J,xi);*xi=(J)asInteger(arg);vals[k]=xi;)
+                C(B_t,SA(B,xb);*xb=(B)asLogical(arg);vals[k]=xb;)
+            }
+        } else if (ty->args[k].aa){
+            switch(ty->args[k].aa){
+                C(F_t,SA(U,x);*x=fr(arg);fs|=1<<k;vals[k]=x;)
+                C(I_t,SA(U,x);*x=fi(arg);vals[k]=x;)
+                C(B_t,SA(U,x);*x=fb(arg);vals[k]=x;)
+            }
         }
     }
     ffi_call(cif,fp,ret,vals);
     DO(i,argc,if(fs>>i&1){free(*(U*)vals[i]);})
-    switch(ty->res){
-        C(FA,r=rf(*(U*)ret))
-        C(IA,r=ri(*(U*)ret))
-        C(BA,r=rb(*(U*)ret))
-        C(F_t,r=ScalarReal(*(F*)ret))
-        C(I_t,r=ScalarInteger((int)(*(J*)ret)))
-        C(B_t,r=ScalarLogical(*(int*)ret))
+    if(ty->res.sa){
+        switch(ty->res.sa){
+            C(F_t,r=ScalarReal(*(F*)ret))
+            C(I_t,r=ScalarInteger((int)(*(J*)ret)))
+            C(B_t,r=ScalarLogical(*(int*)ret))
+        }
+    } else if (ty->res.aa){
+        switch(ty->res.aa){
+            C(F_t,r=rf(*(U*)ret))
+            C(I_t,r=ri(*(U*)ret))
+            C(B_t,r=rb(*(U*)ret))
+        }
     }
     R r;
 }

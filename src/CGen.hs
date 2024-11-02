@@ -1,4 +1,4 @@
-module CGen (CType(..), TTE(..), tCTy, pCty) where
+module CGen (CType(..), CAt(..), TTE(..), tCTy, pCty) where
 
 import           A
 import           Control.Exception (Exception)
@@ -7,10 +7,14 @@ import qualified Data.Text         as T
 import           Prettyprinter     (Doc, Pretty (..), braces, parens, softline', tupled, (<+>))
 import           Prettyprinter.Ext
 
-data CType = CR | CI | CB | Af | Ai | Ab
+data CAt = CR | CI | CB
+
+instance Pretty CAt where pretty CR="F"; pretty CI="J"; pretty CB="B"
+
+data CType = SC !CAt | AC !CAt
 
 instance Pretty CType where
-    pretty CR="F"; pretty CI="J"; pretty CB="B"; pretty Af="Af"; pretty Ai="Ai"; pretty Ab="Ab"
+    pretty (SC at)=pretty at; pretty (AC CR)="Af"; pretty (AC CI)="Ai"; pretty (AC CB)="Ab"
 
 data CF = CF !T.Text [CType] CType
 
@@ -24,12 +28,10 @@ instance Pretty CF where
                 <> pretty out <+> "res" <> "=" <> ax out (pretty n<>tupled (l.snd<$>args))<>";"
                 <> foldMap f args
                 <> "R res;")
-        where px CR="F"; px CI="J"; px CB="B"; px _="U"
-              ax Af=("poke_af"<>).parens;ax Ai=("poke_ai"<>).parens;ax Ab=error "not implemented.";ax _=id
+        where px (SC CR)="F"; px (SC CI)="J"; px (SC CB)="B"; px _="U"
+              ax (AC CR)=("poke_af"<>).parens;ax (AC CI)=("poke_ai"<>).parens;ax (AC CB)=("poke_ab"<>).parens;ax _=id
               d (t,var) = px t <+> l var <> "=" <> ax t (pretty var) <> ";"
-              f (Af,var) = "free" <> parens (l var) <> ";"
-              f (Ai,var) = "free" <> parens (l var) <> ";"
-              f (Ab,var) = "free" <> parens (l var) <> ";"
+              f (AC{},var) = "free" <> parens (l var) <> ";"
               f _        = mempty
               l var = "_" <> pretty var
 
@@ -49,12 +51,12 @@ tCTy :: T a -> Either TTE ([CType], CType)
 tCTy t = do{(ins,out) <- irTy (rLi t); (,)<$>traverse cTy ins<*>cTy out}
 
 cTy :: T a -> Either TTE CType
-cTy F                 = pure CR
-cTy I                 = pure CI
-cTy B                 = pure CB
-cTy (Arr _ F)         = pure Af
-cTy (Arr _ I)         = pure Ai
-cTy (Arr _ B)         = pure Ab
+cTy F                 = pure (SC CR)
+cTy I                 = pure (SC CI)
+cTy B                 = pure (SC CB)
+cTy (Arr _ F)         = pure (AC CR)
+cTy (Arr _ I)         = pure (AC CI)
+cTy (Arr _ B)         = pure (AC CB)
 cTy (Arrow Arrow{} _) = Left FArg
 cTy (Arr _ Arrow{})   = Left ArrFn
 
