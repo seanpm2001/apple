@@ -12,7 +12,7 @@ import Data.Word (Word8, Word64)
 import Dbg
 import Foreign.C.String (CString)
 import Foreign.C.Types (CInt (..), CSize (..), CChar)
-import Foreign.Marshal.Alloc (mallocBytes)
+import Foreign.Marshal.Alloc (callocBytes, mallocBytes)
 import Foreign.Ptr (Ptr, castPtr, castFunPtrToPtr, nullPtr)
 import Foreign.Storable (poke, pokeByteOff, sizeOf)
 import Prettyprinter (Doc, Pretty)
@@ -74,10 +74,8 @@ apple_x86 = harnessString dumpX86G
 
 apple_aarch64 = harnessString dumpAarch64
 
-apple_dumpir :: CString -> Ptr CString -> IO CString
+apple_dumpir, apple_printty :: CString -> Ptr CString -> IO CString
 apple_dumpir = harnessString dumpIR
-
-apple_printty :: CString -> Ptr CString -> IO CString
 apple_printty = harnessString tyExpr
 
 apple_ty :: CString -> Ptr CString -> IO (Ptr FnTy)
@@ -93,18 +91,12 @@ apple_ty src errPtr = do
                 Left te -> do {poke errPtr =<< tcstr (ptxt te); pure nullPtr}
                 Right (tis, to) -> do
                     let argc = length tis
-                    sp <- mallocBytes {# sizeof FnTy #}
+                    sp <- callocBytes {# sizeof FnTy #}
                     ip <- mallocBytes (argc * sizeOf (undefined::CInt))
                     {# set FnTy.argc #} sp (fromIntegral argc)
                     case to of
-                        SC tao -> do
-                            {# set FnTy.res.sa #} sp (t32 tao)
-                            {# set FnTy.res.aa #} sp 0
-                            {# set FnTy.res.a_pi #} sp nullPtr
-                        AC tao -> do
-                            {# set FnTy.res.sa #} sp 0
-                            {# set FnTy.res.aa #} sp (t32 tao)
-                            {# set FnTy.res.a_pi #} sp nullPtr
+                        SC tao -> {# set FnTy.res.sa #} sp (t32 tao)
+                        AC tao -> {# set FnTy.res.aa #} sp (t32 tao)
                     zipWithM_ (\ti n ->
                         case ti of
                             -- FIXME: wait no it's a struct now...
