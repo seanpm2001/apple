@@ -13,7 +13,7 @@ import Dbg
 import Foreign.C.String (CString)
 import Foreign.C.Types (CInt (..), CSize (..), CChar)
 import Foreign.Marshal.Alloc (callocBytes, mallocBytes)
-import Foreign.Ptr (Ptr, castPtr, castFunPtrToPtr, nullPtr)
+import Foreign.Ptr (Ptr, castPtr, castFunPtrToPtr, plusPtr, nullPtr)
 import Foreign.Storable (poke, pokeByteOff, sizeOf)
 import Prettyprinter (Doc, Pretty)
 import Prettyprinter.Ext
@@ -92,18 +92,25 @@ apple_ty src errPtr = do
                 Right (tis, to) -> do
                     let argc = length tis
                     sp <- callocBytes {# sizeof FnTy #}
-                    ip <- mallocBytes (argc * sizeOf (undefined::CInt))
+                    ip <- mallocBytes (argc * {# sizeof apple_t #})
                     {# set FnTy.argc #} sp (fromIntegral argc)
                     case to of
                         SC tao -> {# set FnTy.res.sa #} sp (t32 tao)
                         AC tao -> {# set FnTy.res.aa #} sp (t32 tao)
                     zipWithM_ (\ti n ->
                         case ti of
-                            -- FIXME: wait no it's a struct now...
-                            SC tai -> pokeByteOff ip (n*sizeOf (undefined::CInt)) (t32 tai)
-                            AC tao -> pokeByteOff ip (n*sizeOf (undefined::CInt)) (t32 tao)) tis [0..]
+                            SC tai -> do
+                                pokeByteOff (argn ip n) {# offsetof apple_t->sa #} (t32 tai)
+                                pokeByteOff (argn ip n) {# offsetof apple_t->aa #} (0::CInt)
+                                pokeByteOff (argn ip n) {# offsetof apple_t->a_pi #} nullPtr
+                            AC tao -> do
+                                pokeByteOff (argn ip n) {# offsetof apple_t->sa #} (0::CInt)
+                                pokeByteOff (argn ip n) {# offsetof apple_t->aa #} (t32 tao)
+                                pokeByteOff (argn ip n) {# offsetof apple_t->a_pi #} nullPtr) tis [0..]
                     {# set FnTy.args #} sp ip
                     pure sp
+  where 
+    argn p n = p `plusPtr` (n*{# sizeof apple_t #})
 
 cfp = case arch of {"aarch64" -> actxFunP; "x86_64" -> ctxFunP.fst}
 jNull x p = case x of {Nothing -> poke p nullPtr; Just xϵ -> poke p xϵ}
