@@ -18,7 +18,7 @@ T apple_print_ts_sz(K char*, S*, T*);
 
 enum apple_at{I_t=1,F_t=2,B_t=3};
 
-TS apple_t {enum apple_at sa; enum apple_at aa; enum apple_at* a_pi;} apple_t;
+TS apple_t {enum apple_at sa; enum apple_at aa; struct apple_t* a_pi;} apple_t;
 
 TS FnTy {int argc; apple_t* args; apple_t res;} FnTy;
 
