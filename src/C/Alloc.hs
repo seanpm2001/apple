@@ -37,9 +37,9 @@ fits (SVar sv0) (SVar sv1)            = sv0 == sv1
 fits (Cat sh0 sh1) (Cat sh0' sh1')    | fits sh0 sh0' && fits sh1 sh1' = True
 fits _ _                              = False
 
--- every time we encounter an allocation, make note. Then when its live interval is over, make note of that (incl. size...)
+-- every time we encounter an allocation, make note (size via malloc). Then when its live interval is over, remove from livest?
 --
--- first cut: don't do partial fills
+-- first cut: don't do re-fills
 aa :: [CS Liveness] -> State Slots [CS Liveness]
 aa = undefined
 
