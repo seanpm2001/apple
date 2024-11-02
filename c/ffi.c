@@ -24,3 +24,5 @@ ffi_cif* apple_ffi(FnTy* ty) {
     ffi_prep_cif(cif,FFI_DEFAULT_ABI,(unsigned int)argc,ret,args);
     R cif;
 }
+
+#define ArgTy(t,f,i,b,fa,ia,ba) $(t.sa,switch(t.sa){C(F_t,f) C(I_t,i) C(B_t,b)})if(t.aa){switch(t.aa){C(F_t,fa) C(I_t,ia) C(B_t,ba)}};

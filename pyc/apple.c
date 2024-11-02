@@ -115,20 +115,10 @@ ZF apple_call(PYA self, PYA args, PYA kwargs) {
     ffi_call(cif,fp,ret,vals);
     DO(i,argc,if(fs>>i&1){free(*(U*)vals[i]);})
     PY r;
-    if(ty->res.sa){
-        switch(ty->res.sa){
-            C(F_t,r=PyFloat_FromDouble(*(F*)ret))
-            C(I_t,r=PyLong_FromLongLong(*(J*)ret))
-            C(B_t,r=PyBool_FromLong(*(long*)ret))
-        }
-    }
-    else if (ty->res.aa) {
-        switch(ty->res.aa){
-            C(I_t,r=npy_i(*(U*)ret))
-            C(F_t,r=npy_f(*(U*)ret))
-            C(B_t,r=npy_b(*(U*)ret))
-        }
-    }
+    ArgTy(ty->res,
+        r=PyFloat_FromDouble(*(F*)ret),r=PyLong_FromLongLong(*(J*)ret),r=PyBool_FromLong(*(long*)ret),
+        r=npy_f(*(U*)ret),r=npy_i(*(U*)ret),r=npy_b(*(U*)ret)
+    )
     R r;
 };
 

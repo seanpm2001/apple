@@ -96,8 +96,6 @@ SEXP asm_R(r a) {
     R mkString(ret);
 }
 
-#define ArgTy(t,f,i,b,fa,ia,ba) $(t.sa,switch(t.sa){C(F_t,f) C(I_t,i) C(B_t,b)})if(t.aa){switch(t.aa){C(F_t,fa) C(I_t,ia) C(B_t,ba)}};
-
 SEXP run_R(SEXP args){
     args=CDR(args);
     SEXP rc=CAR(args);

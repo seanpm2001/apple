@@ -18,7 +18,7 @@ static int jit_gc(void *data, size_t len) {
     R 0;
 }
 
-_ U fv_j(K JanetArray* x) {J n=L(x);VA(n*8,y);F* x_f=y;Janet* js=x->data;DO(i,n,x_f[i+2]=janet_unwrap_number(js[i]));R y;}
+_ U fv_r(K JanetArray* x) {J n=L(x);VA(n*8,y);F* x_f=y;Janet* js=x->data;DO(i,n,x_f[i+2]=janet_unwrap_number(js[i]));R y;}
 _ U fv_i(K JanetArray* x) {J n=L(x);VA(n*8,y) J* x_i=y;Janet* js=x->data;DO(i,n,x_i[i+2]=(J)janet_unwrap_integer(js[i]));R y;}
 _ U fv_b(K JanetArray* x) {J n=L(x);VA(n,y);B* x_b=y+16;Janet* js=x->data;DO(i,n,x_b[i]=janet_unwrap_boolean(js[i]));R y;}
 
@@ -34,36 +34,26 @@ Z Janet apple_call(void *x, int32_t argc, Janet *argv) {
     U* vals=janet_smalloc(sizeof(U)*argc);U ret=janet_smalloc(8);
     uint8_t fs=0;
     for(int k=0;k<aarg;k++){
-        if(ty->args[k].sa){
-            switch(ty->args[k].sa){
-                C(F_t,SA(F,xf);*xf=janet_getnumber(argv,k);vals[k]=xf;)
-                C(I_t,SA(J,xi);*xi=(J)janet_getinteger(argv,k);vals[k]=xi;)
-                C(B_t,SA(B,xb);*xb=(B)janet_getboolean(argv,k);vals[k]=xb;)
-            }
-        } else if (ty->args[k].aa){
-            switch(ty->args[k].aa){
-                C(F_t,SA(U,a);*a=fv_j(janet_getarray(argv,k));fs|=1<<k;vals[k]=a;)
-                C(I_t,SA(U,a);*a=fv_i(janet_getarray(argv,k));fs|=1<<k;vals[k]=a;)
-                C(B_t,SA(U,a);*a=fv_b(janet_getarray(argv,k));fs|=1<<k;vals[k]=a;)
-            }
-        }
+        ArgTy(ty->args[k],
+            {SA(F,xf);*xf=janet_getnumber(argv,k);vals[k]=xf;},
+            {SA(J,xi);*xi=(J)janet_getinteger(argv,k);vals[k]=xi;},
+            {SA(B,xb);*xb=(B)janet_getboolean(argv,k);vals[k]=xb;},
+            {SA(U,a);*a=fv_r(janet_getarray(argv,k));fs|=1<<k;vals[k]=a;},
+            {SA(U,a);*a=fv_i(janet_getarray(argv,k));fs|=1<<k;vals[k]=a;},
+            {SA(U,a);*a=fv_b(janet_getarray(argv,k));fs|=1<<k;vals[k]=a;}
+        )
     }
     U fp=jit->bc;ffi_cif* cif=jit->ffi;
     ffi_call(cif,fp,ret,vals);
     Janet r;
-    if(ty->res.sa){
-        switch(ty->res.sa){
-            C(F_t, r=janet_wrap_number(*(F*)ret))
-            C(I_t, r=janet_wrap_integer((int32_t)*(J*)ret))
-            C(B_t, r=janet_wrap_boolean(*(int*)ret))
-        }
-    } else if(ty->res.aa){
-        switch(ty->res.aa){
-            C(F_t, r=janet_wrap_array(j_vf(*(U*)ret)))
-            C(I_t, r=janet_wrap_array(j_vi(*(U*)ret)))
-            C(B_t, r=janet_wrap_array(j_vb(*(U*)ret)))
-        }
-    }
+    ArgTy(ty->res,
+        r=janet_wrap_number(*(F*)ret),
+        r=janet_wrap_integer((int32_t)*(J*)ret),
+        r=janet_wrap_boolean(*(int*)ret),
+        r=janet_wrap_array(j_vf(*(U*)ret)),
+        r=janet_wrap_array(j_vi(*(U*)ret)),
+        r=janet_wrap_array(j_vb(*(U*)ret))
+    )
     DO(i,argc,if(fs>>i&1){free(*(U*)vals[i]);})
     janet_sfree(vals);janet_sfree(ret);
     R r;
