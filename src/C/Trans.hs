@@ -1073,6 +1073,12 @@ aeval (Id _ (AShLit ns es)) t | Just ws <- mIFs es = do
     modify (addAA n (rnk:fmap fromIntegral ns++ws))
     pure (Nothing, [t =: LA n])
     -- TODO: boolean lits
+aeval (Id (Arr _ at) (AShLit ns es)) t | Just ty <- nt at, sz <- bT ty = do
+    let rnk=fromIntegral$length ns; n=fromIntegral$product ns
+    a <- nextArr t
+    tt <- rtemp ty
+    plEs <- zipWithM (\eϵ i -> do {pl <- eeval eϵ tt; pure $ pl ++ [wt (AElem t rnk (ConstI i) (Just a) sz) tt]}) es [0..]
+    pure (Just a, Ma () a t rnk n sz:diml (t, Just a) (fromIntegral<$>ns)++concat plEs)
 aeval (EApp _ (Builtin _ T) x) t | Just (ty, ixes) <- tIx (eAnn x), rnk <- fromIntegral$length ixes, any (isJust.cLog) ixes = do
     a <- nextArr t
     let sze=bT ty; rnkE=ConstI rnk
