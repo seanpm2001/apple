@@ -121,18 +121,11 @@ SEXP run_R(SEXP args){
     }
     ffi_call(cif,fp,ret,vals);
     DO(i,argc,if(fs>>i&1){free(*(U*)vals[i]);})
-    if(ty->res.sa){
-        switch(ty->res.sa){
-            C(F_t,r=ScalarReal(*(F*)ret))
-            C(I_t,r=ScalarInteger((int)(*(J*)ret)))
-            C(B_t,r=ScalarLogical(*(int*)ret))
-        }
-    } else if (ty->res.aa){
-        switch(ty->res.aa){
-            C(F_t,r=rf(*(U*)ret))
-            C(I_t,r=ri(*(U*)ret))
-            C(B_t,r=rb(*(U*)ret))
-        }
-    }
+    ArgTy(ty->res,
+        r=ScalarReal(*(F*)ret),
+        r=ScalarInteger((int)(*(J*)ret)),
+        r=ScalarLogical(*(int*)ret),
+        r=rf(*(U*)ret),r=ri(*(U*)ret),r=rb(*(U*)ret)
+    )
     R r;
 }
