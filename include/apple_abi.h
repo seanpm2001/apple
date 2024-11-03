@@ -8,7 +8,7 @@ TS Af { J rnk, *dim; F* xs; } Af;
 TS Ai { J rnk, *dim; J* xs; } Ai;
 TS Ab { J rnk, *dim; B* xs; } Ab;
 
-Z U poke_af (Af x) {
+_ U poke_af (Af x) {
     J rnk = x.rnk;
     J t = 1;
     DO(i,rnk,t*=x.dim[i]);
@@ -20,7 +20,7 @@ Z U poke_af (Af x) {
     R p;
 }
 
-Z U poke_ai (Ai x) {
+_ U poke_ai (Ai x) {
     J rnk = x.rnk;
     J t = 1;
     DO(i,rnk,t*=x.dim[i]);
