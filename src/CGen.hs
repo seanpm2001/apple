@@ -29,7 +29,7 @@ instance Pretty CF where
                 <> foldMap f args
                 <> "R res;")
         where px (SC CR)="F"; px (SC CI)="J"; px (SC CB)="B"; px _="U"
-              ax (AC CR)=("poke_af"<>).parens;ax (AC CI)=("poke_ai"<>).parens;ax (AC CB)=("poke_ab"<>).parens;ax _=id
+              ax (AC at)=(("poke_a"<>wa at)<>).parens;ax _=id;wa CR="f"; wa CI="i"; wa CB="b"
               d (t,var) = px t <+> l var <> "=" <> ax t (pretty var) <> ";"
               f (AC{},var) = "free" <> parens (l var) <> ";"
               f _        = mempty
