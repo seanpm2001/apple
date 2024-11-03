@@ -11,7 +11,7 @@ data CAt = CR | CI | CB
 
 instance Pretty CAt where pretty CR="F"; pretty CI="J"; pretty CB="B"
 
-data CType = SC !CAt | AC !CAt
+data CType = SC !CAt | AC !CAt | ΠC [CType]
 
 instance Pretty CType where
     pretty (SC at)=pretty at; pretty (AC CR)="Af"; pretty (AC CI)="Ai"; pretty (AC CB)="Ab"
@@ -32,7 +32,7 @@ instance Pretty CF where
               ax (AC at)=(("poke_a"<>wa at)<>).parens;ax _=id;wa CR="f"; wa CI="i"; wa CB="b"
               d (t,var) = px t <+> l var <> "=" <> ax t (pretty var) <> ";"
               f (AC{},var) = "free" <> parens (l var) <> ";"
-              f _        = mempty
+              f _          = mempty
               l var = "_" <> pretty var
 
 -- type translation error
@@ -57,6 +57,7 @@ cTy B                 = pure (SC CB)
 cTy (Arr _ F)         = pure (AC CR)
 cTy (Arr _ I)         = pure (AC CI)
 cTy (Arr _ B)         = pure (AC CB)
+cTy (P ts)            = ΠC <$> traverse cTy ts
 cTy (Arrow Arrow{} _) = Left FArg
 cTy (Arr _ Arrow{})   = Left ArrFn
 
@@ -67,6 +68,7 @@ irTy F                 = pure ([], F)
 irTy I                 = pure ([], I)
 irTy B                 = pure ([], B)
 irTy t@Arr{}           = pure ([], t)
+irTy t@P{}             = pure ([], t)
 irTy (Arrow Arrow{} _) = Left HO
 irTy (Arrow t0 t1)     = first (t0:) <$> irTy t1
 irTy TVar{}            = Left Poly
