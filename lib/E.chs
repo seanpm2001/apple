@@ -92,7 +92,7 @@ apple_ty src errPtr = do
                 Right (tis, to) -> do
                     let argc = length tis
                     sp <- callocBytes {# sizeof FnTy #}
-                    ip <- mallocBytes (argc * {# sizeof apple_t #})
+                    ip <- callocBytes (argc * {# sizeof apple_t #})
                     {# set FnTy.argc #} sp (fromIntegral argc)
                     case to of
                         SC tao -> {# set FnTy.res.sa #} sp (t32 tao)
@@ -107,14 +107,8 @@ apple_ty src errPtr = do
                                 pokeByteOff p (n*{#sizeof apple_t#}) ap) ts [0..]
                     zipWithM_ (\ti n ->
                         case ti of
-                            SC tai -> do
-                                argn ip n {# offsetof apple_t->sa #} (t32 tai)
-                                argn ip n {# offsetof apple_t->aa #} (0::CInt)
-                                argn ip n {# offsetof apple_t->a_pi #} nullPtr
-                            AC tao -> do
-                                argn ip n {# offsetof apple_t->sa #} (0::CInt)
-                                argn ip n {# offsetof apple_t->aa #} (t32 tao)
-                                argn ip n {# offsetof apple_t->a_pi #} nullPtr) tis [0..]
+                            SC tai -> argn ip n {# offsetof apple_t->sa #} (t32 tai)
+                            AC tao -> argn ip n {# offsetof apple_t->aa #} (t32 tao)) tis [0..]
                     {# set FnTy.args #} sp ip
                     pure sp
   where 
