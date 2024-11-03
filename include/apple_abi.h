@@ -4,9 +4,9 @@
 
 #define V(n,xs,p) U p;{p=malloc(16+8*n);J* i_p=p;*i_p=1;i_p[1]=n;memcpy(p+16,xs,8*n);}
 
-TS Af { J rnk; J* dim; F* xs; } Af;
-TS Ai { J rnk; J* dim; J* xs; } Ai;
-TS Ab { J rnk; J* dim; B* xs; } Ab;
+TS Af { J rnk, *dim; F* xs; } Af;
+TS Ai { J rnk, *dim; J* xs; } Ai;
+TS Ab { J rnk, *dim; B* xs; } Ab;
 
 Z U poke_af (Af x) {
     J rnk = x.rnk;
