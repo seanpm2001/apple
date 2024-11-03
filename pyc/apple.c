@@ -7,7 +7,7 @@
 
 typedef PyObject* PY;typedef const PyArrayObject* NP;typedef const PY PYA;
 
-#define $arr(o){if(!(PyArray_CheckExact(pyarg))){PyErr_SetString(PyExc_RuntimeError,"Expected NumPy array.");R NULL;}}
+#define $arr(o){if(!(PyArray_CheckExact(o))){PyErr_SetString(PyExc_RuntimeError,"Expected NumPy array.");R NULL;}}
 #define $e(p,e) {if(!(p)){PyErr_SetString(PyExc_RuntimeError,e);}}
 #define CT(o,c,s) {$e((o->flags && NPY_ARRAY_C_CONTIGUOUS), "Only row-major (C-style) arrays are supported.");PyArray_Descr *d=PyArray_DESCR(o);$e((d->type==c),s);}
 #define ERR(p,msg) {if(p==NULL){PyErr_SetString(PyExc_RuntimeError,msg);free(msg);R NULL;}}
