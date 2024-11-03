@@ -97,20 +97,28 @@ apple_ty src errPtr = do
                     case to of
                         SC tao -> {# set FnTy.res.sa #} sp (t32 tao)
                         AC tao -> {# set FnTy.res.aa #} sp (t32 tao)
+                        ΠC ts -> do
+                            p <- mallocBytes (length ts*{#sizeof apple_t#})
+                            zipWithM_ (\tϵ n -> do
+                                ap <- callocBytes {#sizeof apple_t#}
+                                case tϵ of
+                                    AC taϵ -> {# set apple_t.aa #} ap (t32 taϵ)
+                                    SC taϵ -> {# set apple_t.sa #} ap (t32 taϵ)
+                                pokeByteOff p (n*{#sizeof apple_t#}) ap) ts [0..]
                     zipWithM_ (\ti n ->
                         case ti of
                             SC tai -> do
-                                pokeByteOff (argn ip n) {# offsetof apple_t->sa #} (t32 tai)
-                                pokeByteOff (argn ip n) {# offsetof apple_t->aa #} (0::CInt)
-                                pokeByteOff (argn ip n) {# offsetof apple_t->a_pi #} nullPtr
+                                argn ip n {# offsetof apple_t->sa #} (t32 tai)
+                                argn ip n {# offsetof apple_t->aa #} (0::CInt)
+                                argn ip n {# offsetof apple_t->a_pi #} nullPtr
                             AC tao -> do
-                                pokeByteOff (argn ip n) {# offsetof apple_t->sa #} (0::CInt)
-                                pokeByteOff (argn ip n) {# offsetof apple_t->aa #} (t32 tao)
-                                pokeByteOff (argn ip n) {# offsetof apple_t->a_pi #} nullPtr) tis [0..]
+                                argn ip n {# offsetof apple_t->sa #} (0::CInt)
+                                argn ip n {# offsetof apple_t->aa #} (t32 tao)
+                                argn ip n {# offsetof apple_t->a_pi #} nullPtr) tis [0..]
                     {# set FnTy.args #} sp ip
                     pure sp
   where 
-    argn p n = p `plusPtr` (n*{# sizeof apple_t #})
+    argn p n = pokeByteOff (p `plusPtr` (n*{# sizeof apple_t #}))
 
 cfp = case arch of {"aarch64" -> actxFunP; "x86_64" -> ctxFunP.fst}
 jNull x p = case x of {Nothing -> poke p nullPtr; Just xϵ -> poke p xϵ}
