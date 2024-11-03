@@ -10,3 +10,8 @@ Vec 8 [4.0, 4.0, 4.0, 3.0, 3.0, 3.0, 1.0, 1.0]
 - [ ] \xs.\ys. (∧)/((=)`xs ys)
 - [ ] Jensen-Shannon: H(p+q/2)-(H(p)+H(q))/2
   - [ ] gte 0 (Hellinger as well)
+
+- Index of all values >0.5
+```
+(->2)'([x->1>0.5]#.([(x,y)]`(𝔯 0 1::Vec n float) (irange 0 9 1)))
+```
