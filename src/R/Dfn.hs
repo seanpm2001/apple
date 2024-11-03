@@ -4,34 +4,31 @@ import           A
 import           Nm
 import           U
 
-dedfn :: E a -> E a
-dedfn = dedfnM
-
 -- bottom-up
-dedfnM :: E a -> E a
-dedfnM e@ILit{} = e
-dedfnM e@FLit{} = e
-dedfnM e@BLit{} = e
-dedfnM e@Var{} = e
-dedfnM e@Builtin{} = e
-dedfnM e@ResVar{} = e
-dedfnM (Ann l e t) = Ann l (dedfnM e) t
-dedfnM (ALit l es) = ALit l (map dedfnM es)
-dedfnM (Tup l es) = Tup l (map dedfnM es)
-dedfnM (EApp l e e') = EApp l (dedfnM e) (dedfnM e')
-dedfnM (Cond l e e' e'') = Cond l (dedfnM e) (dedfnM e') (dedfnM e'')
-dedfnM (Lam l n e) = Lam l n (dedfnM e)
-dedfnM (Let l (n, e) eBody) = Let l (n, dedfnM e) (dedfnM eBody)
-dedfnM (Def l (n, e) eBody) = Def l (n, (dedfnM e)) (dedfnM eBody)
-dedfnM (LLet l (n, e) eBody) = LLet l (n, dedfnM e) (dedfnM eBody)
-dedfnM (Dfn l e) =
+dedfn :: E a -> E a
+dedfn e@ILit{} = e
+dedfn e@FLit{} = e
+dedfn e@BLit{} = e
+dedfn e@Var{} = e
+dedfn e@Builtin{} = e
+dedfn e@ResVar{} = e
+dedfn (Ann l e t) = Ann l (dedfn e) t
+dedfn (ALit l es) = ALit l (map dedfn es)
+dedfn (Tup l es) = Tup l (map dedfn es)
+dedfn (EApp l e e') = EApp l (dedfn e) (dedfn e')
+dedfn (Cond l e e' e'') = Cond l (dedfn e) (dedfn e') (dedfn e'')
+dedfn (Lam l n e) = Lam l n (dedfn e)
+dedfn (Let l (n, e) eBody) = Let l (n, dedfn e) (dedfn eBody)
+dedfn (Def l (n, e) eBody) = Def l (n, (dedfn e)) (dedfn eBody)
+dedfn (LLet l (n, e) eBody) = LLet l (n, dedfn e) (dedfn eBody)
+dedfn (Dfn l e) =
     let x=Nm "x" (U (-1))
         y=Nm "y" (U (-2))
-        (eDone, hasY) = replaceXY x y (dedfnM e)
+        (eDone, hasY) = replaceXY x y (dedfn e)
     in if hasY
         then Lam l (x l) (Lam l (y l) eDone)
         else Lam l (x l) eDone
-dedfnM (Parens _ e) = dedfnM e
+dedfn (Parens _ e) = dedfn e
 
 -- this approach is criminally inefficient
 replaceXY :: (a -> Nm a) -- ^ x
