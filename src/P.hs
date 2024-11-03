@@ -94,7 +94,7 @@ parseRenameCtx :: AlexUserState -> BSL.ByteString -> Either ParseE (E AlexPosn, 
 parseRenameCtx st = fmap (uncurry renameECtx.second rewrite) . parseWithMaxCtx st
 
 renameECtx :: Int -> E a -> (E a, Int)
-renameECtx i ast = let (e, m) = dedfn i ast in rG m e
+renameECtx i ast = rG i (dedfn ast)
 
 parseRename :: BSL.ByteString -> Either ParseE (E AlexPosn, Int)
 parseRename = parseRenameCtx alexInitUserState

@@ -1,47 +1,34 @@
 module R.Dfn ( dedfn ) where
 
 import           A
-import           Control.Monad.Trans.State.Strict (state)
-import qualified Data.Text                        as T
 import           Nm
-import           R.M
 import           U
 
-dummyName :: T.Text -> RM (a -> Nm a)
-dummyName n = state (\i -> let j=i+1 in (Nm n (U j), j))
-
-dedfn :: Int -> E a -> (E a, Int)
-dedfn i = runR i . dedfnM
+dedfn :: E a -> E a
+dedfn = dedfnM
 
 -- bottom-up
-dedfnM :: E a -> RM (E a)
-dedfnM e@ILit{} = pure e
-dedfnM e@FLit{} = pure e
-dedfnM e@BLit{} = pure e
-dedfnM e@Var{} = pure e
-dedfnM e@Builtin{} = pure e
-dedfnM e@ResVar{} = pure e
-dedfnM (Ann l e t) = Ann l <$> dedfnM e <*> pure t
-dedfnM (ALit l es) = ALit l <$> traverse dedfnM es
-dedfnM (Tup l es) = Tup l <$> traverse dedfnM es
-dedfnM (EApp l e e') = EApp l <$> dedfnM e <*> dedfnM e'
-dedfnM (Cond l e e' e'') = Cond l <$> dedfnM e <*> dedfnM e' <*> dedfnM e''
-dedfnM (Lam l n e) = Lam l n <$> dedfnM e
-dedfnM (Let l (n, e) eBody) = do
-    e' <- dedfnM e
-    Let l (n, e') <$> dedfnM eBody
-dedfnM (Def l (n, e) eBody) = do
-    e' <- dedfnM e
-    Def l (n, e') <$> dedfnM eBody
-dedfnM (LLet l (n, e) eBody) = do
-    e' <- dedfnM e
-    LLet l (n, e') <$> dedfnM eBody
-dedfnM (Dfn l e) = do
-    e' <- dedfnM e
-    x <- dummyName "x" -- TODO: do we need uniques? could rename it later
-    y <- dummyName "y"
-    let (eDone, hasY) = replaceXY x y e'
-    pure $ if hasY
+dedfnM :: E a -> E a
+dedfnM e@ILit{} = e
+dedfnM e@FLit{} = e
+dedfnM e@BLit{} = e
+dedfnM e@Var{} = e
+dedfnM e@Builtin{} = e
+dedfnM e@ResVar{} = e
+dedfnM (Ann l e t) = Ann l (dedfnM e) t
+dedfnM (ALit l es) = ALit l (map dedfnM es)
+dedfnM (Tup l es) = Tup l (map dedfnM es)
+dedfnM (EApp l e e') = EApp l (dedfnM e) (dedfnM e')
+dedfnM (Cond l e e' e'') = Cond l (dedfnM e) (dedfnM e') (dedfnM e'')
+dedfnM (Lam l n e) = Lam l n (dedfnM e)
+dedfnM (Let l (n, e) eBody) = Let l (n, dedfnM e) (dedfnM eBody)
+dedfnM (Def l (n, e) eBody) = Def l (n, (dedfnM e)) (dedfnM eBody)
+dedfnM (LLet l (n, e) eBody) = LLet l (n, dedfnM e) (dedfnM eBody)
+dedfnM (Dfn l e) =
+    let x=Nm "x" (U (-1))
+        y=Nm "y" (U (-2))
+        (eDone, hasY) = replaceXY x y (dedfnM e)
+    in if hasY
         then Lam l (x l) (Lam l (y l) eDone)
         else Lam l (x l) eDone
 dedfnM (Parens _ e) = dedfnM e
