@@ -22,7 +22,7 @@ TS apple_t {enum apple_at sa; enum apple_at aa; struct apple_t* a_pi;} apple_t;
 
 TS FnTy {int argc; apple_t* args; apple_t res;} FnTy;
 
-Z void freety(FnTy* x){free(x->args);free(x);}
+_ void freety(FnTy* x){DO(i,x->argc,apple_t t=x->args[i];if(t.a_pi){free(t.a_pi);});free(x->args);free(x);}
 
 // NULL on error
 FnTy* apple_ty(K char*, T*);
