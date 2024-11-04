@@ -77,7 +77,7 @@ TS JO {
     U bc;S c_sz;FnTy* ty; U sa;ffi_cif* ffi;T ts;
 } JO;
 
-Z void cache_dealloc(JO* self) {
+_ void cache_dealloc(JO* self) {
     munmap(self->bc,self->c_sz);
     free(self->sa);freety(self->ty);free(self->ffi);free(self->ts);
 }

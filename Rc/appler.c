@@ -25,7 +25,7 @@ typedef const SEXP r;
 
 TS AppleC {U code;S code_sz;FnTy* ty;U sa;ffi_cif* ffi;} AppleC;
 
-Z void clear(SEXP jit) {
+_ void clear(SEXP jit) {
     AppleC* c=(AppleC*)R_ExternalPtrAddr(jit);
     munmap(c->code,c->code_sz);
     free(c->sa);free(c->ffi);freety(c->ty);
