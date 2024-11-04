@@ -35,6 +35,15 @@ NPA(npy_i,8,NPY_INT64)
 NPA(npy_f,8,NPY_FLOAT64)
 NPA(npy_b,1,NPY_BOOL)
 
+PY apy(apple_t t, U x){
+    PY r;
+    ArgTy(t,
+        r=PyFloat_FromDouble(*(F*)x),r=PyLong_FromLongLong(*(J*)x),r=PyBool_FromLong(*(long*)x),
+        r=npy_f(*(U*)x),r=npy_i(*(U*)x),r=npy_b(*(U*)x)
+    )
+    R r;
+}
+
 ZF apple_typeof(PYA self, PYA args) {
     const T inp;PyArg_ParseTuple(args, "s", &inp);
     T err;
@@ -106,12 +115,7 @@ ZF apple_call(PYA self, PYA args, PYA kwargs) {
     }
     ffi_call(cif,fp,ret,vals);
     DO(i,argc,if(fs>>i&1){free(*(U*)vals[i]);})
-    PY r;
-    ArgTy(ty->res,
-        r=PyFloat_FromDouble(*(F*)ret),r=PyLong_FromLongLong(*(J*)ret),r=PyBool_FromLong(*(long*)ret),
-        r=npy_f(*(U*)ret),r=npy_i(*(U*)ret),r=npy_b(*(U*)ret)
-    )
-    R r;
+    R apy(ty->res,ret);
 };
 
 static PyTypeObject JOT = {

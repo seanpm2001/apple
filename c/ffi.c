@@ -10,7 +10,7 @@
 #define SA(t,x) t* x=alloca(SZ(t))
 #define $(p,a) if(p){a;}else
 
-#define F(r,t) {$(t.f==Sc,{switch(t.ty.sa){C(I_t,r=&ffi_type_sint64) C(B_t,r=&ffi_type_uint8) C(F_t,r=&ffi_type_double)}}) r=&ffi_type_pointer;}
+#define F(r,t) {$(t.f==Sc,{switch(t.ty.sa){C(I_t,r=&ffi_type_sint64) C(B_t,r=&ffi_type_uint8) C(F_t,r=&ffi_type_double)}}) {r=&ffi_type_pointer;}}
 
 G JC sys={(P)&malloc,(P)&free,(P)&lrand48,(P)&drand48,(P)&exp,(P)&log,(P)&pow};
 
