@@ -15,7 +15,7 @@ typedef PyObject* PY;typedef const PyArrayObject* NP;typedef const PY PYA;
 #define ZF Z PY
 
 TS CA {U h;U d;} CA;
-Z void CA_dealloc(CA* self) {free(self->h);}
+_ void CA_dealloc(CA* self) {free(self->h);}
 
 static PyTypeObject AT = {
     PyVarObject_HEAD_INIT(NULL,0)
