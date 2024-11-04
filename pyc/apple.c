@@ -5,7 +5,7 @@
 #include"../include/apple_abi.h"
 #include"../c/ffi.c"
 
-typedef PyObject* PY;typedef const PyArrayObject* NP;typedef const PY PYA;
+typedef PyObject* PY;typedef PyArrayObject* NP;typedef const PY PYA;
 
 #define $arr(o){if(!(PyArray_CheckExact(o))){PyErr_SetString(PyExc_RuntimeError,"Expected NumPy array.");R NULL;}}
 #define $e(p,e) {if(!(p)){PyErr_SetString(PyExc_RuntimeError,e);}}
@@ -14,18 +14,7 @@ typedef PyObject* PY;typedef const PyArrayObject* NP;typedef const PY PYA;
 
 #define ZF Z PY
 
-TS CA {U h;U d;} CA;
-_ void CA_dealloc(CA* self) {free(self->h);}
-
-static PyTypeObject AT = {
-    PyVarObject_HEAD_INIT(NULL,0)
-    .tp_name="apple.ANumPy",
-    .tp_basicsize = sizeof(CA),
-    .tp_itemsize = 0,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_new = PyType_GenericNew,
-    .tp_dealloc = (destructor)CA_dealloc,
-};
+_ void c_free(PY cap){free(PyCapsule_GetPointer(cap,NULL));}
 
 // CD - copy dims AD - apple dimensionate
 #define CD(rnk,x,t,ls) J* i_p=x;J rnk=i_p[0];npy_intp* ls=malloc(SZ(npy_intp)*rnk);J t=1;DO(i,rnk,t*=i_p[i+1];ls[i]=(npy_intp)i_p[i+1]);
@@ -37,9 +26,10 @@ ZU f_npy(K NP o) {CT(o,'d',"Error: expected an array of floats");A(rnk,n,8,x,o);
 ZU b_npy(K NP o) {CT(o,'?',"Error: expected an array of booleans");A(rnk,n,1,x,o);B* x_p=x;U data=PyArray_DATA(o);memcpy(x_p+8*rnk+8,data,n);R x;}
 ZU i_npy(K NP o) {CT(o,'l',"Error: expected an array of 64-bit integers");A(rnk,n,8,x,o);J* x_i=x;U data=PyArray_DATA(o);memcpy(x_i+rnk+1,data,n*8);R x;}
 
-#define RP(rnk,x,n,w,ls,T) {S sz=w*n;CA* d=PyObject_New(CA,&AT);d->h=x;d->d=x+rnk*8+8;PyArray_Descr* pd=PyArray_DescrFromType(T); PY r=PyArray_NewFromDescr(&PyArray_Type,pd,(int)rnk,ls,NULL,d->d,NPY_ARRAY_C_CONTIGUOUS,NULL); R r;}
+// https://stackoverflow.com/a/52737023/11296354
+#define RP(rnk,x,n,w,ls,T) {S sz=w*n;PY cap=PyCapsule_New(x,NULL,c_free);PyArray_Descr* pd=PyArray_DescrFromType(T); PY r=PyArray_NewFromDescr(&PyArray_Type,pd,(int)rnk,ls,NULL,x+rnk*8+8,NPY_ARRAY_C_CONTIGUOUS,NULL);PyArray_SetBaseObject((NP)r,cap);R r;}
 
-#define NPA(f,s,T) ZF f(K U x) {CD(rnk,x,t,ls);RP(rnk,x,t,s,ls,T);}
+#define NPA(f,s,T) ZF f(U x) {CD(rnk,x,t,ls);RP(rnk,x,t,s,ls,T);}
 
 NPA(npy_i,8,NPY_INT64)
 NPA(npy_f,8,NPY_FLOAT64)
@@ -106,9 +96,9 @@ ZF apple_call(PYA self, PYA args, PYA kwargs) {
                     })
                 C(Aa,
                     switch(argt.ty.aa){
-                        C(I_t,SA(U,x);$arr(pyarg);*x=i_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
-                        C(B_t,SA(U,x);$arr(pyarg);*x=b_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
-                        C(F_t,SA(U,x);$arr(pyarg);*x=f_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
+                        C(I_t,SA(U,x);$arr(pyarg);*x=i_npy((const NP)pyarg);fs|=1<<k;vals[k]=x;)
+                        C(B_t,SA(U,x);$arr(pyarg);*x=b_npy((const NP)pyarg);fs|=1<<k;vals[k]=x;)
+                        C(F_t,SA(U,x);$arr(pyarg);*x=f_npy((const NP)pyarg);fs|=1<<k;vals[k]=x;)
                     }
                  )
             }
