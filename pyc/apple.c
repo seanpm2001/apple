@@ -97,18 +97,20 @@ ZF apple_call(PYA self, PYA args, PYA kwargs) {
     for(int k=0;k<argc;k++){
         pyarg=pyargs[k];
         if(pyarg!=NULL){
-            if(ty->args[k].sa) {
-                switch(ty->args[k].sa){
-                    C(I_t,SA(J,xi);*xi=PyLong_AsLong(pyarg);vals[k]=xi;)
-                    C(F_t,SA(F,xf);*xf=PyFloat_AsDouble(pyarg);vals[k]=xf;)
-                }
-            }
-            else if(ty->args[k].aa) {
-                switch(ty->args[k].aa){
-                    C(I_t,SA(U,x);$arr(pyarg);*x=i_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
-                    C(B_t,SA(U,x);$arr(pyarg);*x=b_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
-                    C(F_t,SA(U,x);$arr(pyarg);*x=f_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
-                }
+            apple_t argt=ty->args[k];
+            switch(argt.f){
+                C(Sc,
+                    switch(argt.ty.sa){
+                        C(I_t,SA(J,xi);*xi=PyLong_AsLong(pyarg);vals[k]=xi;)
+                        C(F_t,SA(F,xf);*xf=PyFloat_AsDouble(pyarg);vals[k]=xf;)
+                    })
+                C(Aa,
+                    switch(argt.ty.aa){
+                        C(I_t,SA(U,x);$arr(pyarg);*x=i_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
+                        C(B_t,SA(U,x);$arr(pyarg);*x=b_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
+                        C(F_t,SA(U,x);$arr(pyarg);*x=f_npy((NP)pyarg);fs|=1<<k;vals[k]=x;)
+                    }
+                 )
             }
         }
     }

@@ -29,12 +29,16 @@ data JitCtx
 {# fun memcpy as ^ { castPtr `Ptr a', castPtr `Ptr a', coerce `CSize' } -> `Ptr a' castPtr #}
 
 {# enum apple_at as CA {} #}
+{# enum HK as HK {} #}
 
 ct :: CAt -> CA
 ct CR = F_t; ct CI = I_t; ct CB = B_t
 
 t32 :: CAt -> CInt
 t32 = fromIntegral.fromEnum.ct
+
+hk32 :: HK -> CInt
+hk32 = fromIntegral.fromEnum
 
 ppn :: T.Text -> Ptr CSize -> IO CString
 ppn t szP = BS.unsafeUseAsCStringLen (encodeUtf8 t) $ \(bs, sz) -> do
@@ -91,24 +95,36 @@ apple_ty src errPtr = do
                 Left te -> do {poke errPtr =<< tcstr (ptxt te); pure nullPtr}
                 Right (tis, to) -> do
                     let argc = length tis
-                    sp <- callocBytes {# sizeof FnTy #}
-                    ip <- callocBytes (argc * {# sizeof apple_t #})
+                    sp <- mallocBytes {# sizeof FnTy #}
+                    ip <- mallocBytes (argc * {# sizeof apple_t #})
                     {# set FnTy.argc #} sp (fromIntegral argc)
                     case to of
-                        SC tao -> {# set FnTy.res.sa #} sp (t32 tao)
-                        AC tao -> {# set FnTy.res.aa #} sp (t32 tao)
+                        SC tao -> do
+                            {# set FnTy.res.f #} sp (hk32 Sc)
+                            {# set FnTy.res.ty.sa #} sp (t32 tao)
+                        AC tao -> do
+                            {# set FnTy.res.f #} sp (hk32 Aa)
+                            {# set FnTy.res.ty.aa #} sp (t32 tao)
                         ΠC ts -> do
-                            p <- mallocBytes (length ts*{#sizeof apple_t#})
+                            p <- mallocBytes ({#sizeof apple_Pi#})
                             zipWithM_ (\tϵ n -> do
-                                ap <- callocBytes {#sizeof apple_t#}
+                                ap <- mallocBytes {#sizeof apple_t#}
                                 case tϵ of
-                                    AC taϵ -> {# set apple_t.aa #} ap (t32 taϵ)
-                                    SC taϵ -> {# set apple_t.sa #} ap (t32 taϵ)
+                                    AC taϵ -> do
+                                        {# set apple_t.f #} ap (hk32 Aa)
+                                        {# set apple_t.ty.aa #} ap (t32 taϵ)
+                                    SC taϵ -> do
+                                        {# set apple_t.f #} ap (hk32 Sc)
+                                        {# set apple_t.ty.sa #} ap (t32 taϵ)
                                 pokeByteOff p (n*{#sizeof apple_t#}) ap) ts [0..]
                     zipWithM_ (\ti n ->
                         case ti of
-                            SC tai -> argn ip n {# offsetof apple_t->sa #} (t32 tai)
-                            AC tao -> argn ip n {# offsetof apple_t->aa #} (t32 tao)) tis [0..]
+                            SC tai -> do
+                                argn ip n {# offsetof apple_t->f #} (hk32 Sc)
+                                argn ip n {# offsetof apple_t->ty.sa #} (t32 tai)
+                            AC tao -> do
+                                argn ip n {# offsetof apple_t->f #} (hk32 Aa)
+                                argn ip n {# offsetof apple_t->ty.aa #} (t32 tao)) tis [0..]
                     {# set FnTy.args #} sp ip
                     pure sp
   where 
