@@ -88,6 +88,9 @@ train=apple.jit('''
   }''')
 
 update_l1,update_l2=train(train_images_v,train_labels_v,l1,l2)
+print('update_l2\n',update_l2)
+
+def fw_bw(x,targets):
 
     x_l1p,x_sigmoid,x_l2p,out=fw(l1,l2,x)
 
