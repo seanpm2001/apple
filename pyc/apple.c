@@ -37,7 +37,7 @@ NPA(npy_b,1,NPY_BOOL)
 
 PY apy(apple_t,U);
 
-PY ar(apple_Pi t, U x){
+PY ar(apple_P t, U x){
     int n=t.pi_n;
     PY r=PyTuple_New(n);
     SA(U,ret);
