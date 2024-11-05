@@ -9,47 +9,27 @@ output_bias=0.57823076
 
 import apple
 
-h=apple.jit("λX.λwh.λbh. {sigmoid ← [1%(1+ℯ(_x))]; sigmoid`{0} ([(+)`bh x]'(X%.wh))}")
-hidden_layer_output=h(inputs,hidden_weights,hidden_bias)
-
-o=apple.jit("λho.λwo.λbo. {sigmoid ← [1%(1+ℯ(_x))]; sigmoid'((+bo)'(ho%:wo))}")
-predicted_output=o(hidden_layer_output,output_weights,output_bias)
-
-dpo=apple.jit('''
-λprediction.
-{
-  Y ⟜ ⟨0.0,1,1,0⟩;
+train=apple.jit('''
+λwh.λwo.λbh.λbo.
+{ X ⟜ ⟨⟨0,0⟩,⟨0,1⟩,⟨1,0⟩,⟨1,1⟩⟩;
+  Y ⟜ ⟨0,1,1,0⟩;
+  sigmoid ← [⅟(1+ℯ(_x))];
   sDdx ← [x*(1-x)];
+  sum ⇐ [(+)/x];
+  -- ho: 4x2
+  -- prediction: 4
+  ho ⟜ sigmoid`{0} ([(+)`bh x]'(X%.wh));
+  prediction ⟜ (sigmoid ∴ (+bo))'(ho%:wo);
   l1E ← (-)`Y prediction;
-  (*)`(sDdx'prediction) l1E
+  l1Δ ⟜ (*)`(sDdx'prediction) l1E; -- 4
+  he ← l1Δ (*)⊗ wo; -- 4x2
+  hΔ ⟜ (*)`{0,0} (sDdx`{0} ho) he; -- 4x2
+  wha ← (+)`{0,0} wh ((|:X)%.hΔ);
+  woa ← (+)`wo ((|:ho)%:l1Δ);
+  bha ← [(+)/ₒ x y]`{0,1} bh hΔ;
+  boa ← bo + sum l1Δ;
+  (wha,woa,bha,boa)
 }
 ''')
-d_predicted_output = dpo(predicted_output)
 
-dhe=apple.jit('''
-λl1Δ.λwo.λho.
-{
-  sDdx ← [x*(1.0-x)];
-  he ← l1Δ (*)⊗ wo;
-  (*)`{0,0} (sDdx`{0} ho) he
-}
-''')
-d_hidden_layer=dhe(d_predicted_output,output_weights,hidden_layer_output)
-
-hw=apple.jit('''
-λwh.λhΔ.
-{
-  X ⟜ ⟨⟨0.0,0⟩,⟨0,1⟩,⟨1,0⟩,⟨1,1⟩⟩;
-  (+)`{0,0} wh ((|:X)%.hΔ)
-}
-''')
-hidden_weights=hw(hidden_weights,d_hidden_layer)
-
-hb=apple.jit("λbh.λhΔ. [(+)/ₒ x y]`{0,1} bh (hΔ::M float)")
-hidden_bias=hb(hidden_bias,d_hidden_layer)
-
-bo=apple.jit("λbo.λl1Δ. {sum ← [(+)/x]; bo + sum (l1Δ::Vec 4 float)}")
-output_bias=bo(output_bias,d_predicted_output)
-
-ow=apple.jit("λwo.λho.λl1Δ.(+)`wo ((|:ho)%:(l1Δ::Vec n float))")
-output_weights=ow(output_weights,hidden_layer_output,d_predicted_output)
+(hidden_weights,output_weights,hidden_bias,output_bias)=train(hidden_weights,output_weights,hidden_bias,output_bias)
