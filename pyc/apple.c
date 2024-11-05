@@ -35,9 +35,9 @@ NPA(npy_i,8,NPY_INT64)
 NPA(npy_f,8,NPY_FLOAT64)
 NPA(npy_b,1,NPY_BOOL)
 
-PY apy(apple_t,U);
+Z PY apy(K apple_t,K U);
 
-PY ar(apple_P t, U x){
+Z PY ar(K apple_P t, K U x){
     int n=t.pi_n;
     PY r=PyTuple_New(n);
     SA(U,ret);
@@ -46,7 +46,7 @@ PY ar(apple_P t, U x){
     R r;
 }
 
-PY apy(apple_t t, U x){
+Z PY apy(K apple_t t, K U x){
     PY r;
     ArgTy(t,
         r=PyFloat_FromDouble(*(F*)x),r=PyLong_FromLongLong(*(J*)x),r=PyBool_FromLong(*(long*)x),
