@@ -27,7 +27,8 @@ TS apple_t {enum HK f; union {enum apple_at sa; enum apple_at aa; apple_P APi;} 
 
 TS FnTy {int argc; apple_t* args; apple_t res;} FnTy;
 
-_ void free_t(apple_t x){if(x.f==Pi){apple_P p=x.ty.APi;DO(j,p.pi_n,free_t(*p.a_pi));free(p.a_pi);}}
+// expect flat
+_ void free_t(apple_t x){if(x.f==Pi){free(x.ty.APi.a_pi);}}
 
 _ void freety(FnTy* x){DO(i,x->argc,free_t(x->args[i]));free(x->args);free_t(x->res);free(x);}
 
