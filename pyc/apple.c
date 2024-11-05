@@ -37,21 +37,20 @@ NPA(npy_b,1,NPY_BOOL)
 
 Z PY apy(K apple_t,K U);
 
-Z PY ar(K apple_P t, K U x){
+Z PY ar(K apple_P t, K U* x){
     int n=t.pi_n;
     PY r=PyTuple_New(n);
-    SA(U,ret);
+    SA(U,ret);DO(i,n,ret[0]=x[i];PyTuple_SetItem(r,i,apy(t.a_pi[i],ret)))
     // libffi passes pointers as pointers-to-pointers
-    DO(i,n,ret[0]=((U*)x)[i];PyTuple_SetItem(r,i,apy(t.a_pi[i],ret)))
     R r;
 }
 
 Z PY apy(K apple_t t, K U x){
     PY r;
-    ArgTy(t,
+    Ret(t,
         r=PyFloat_FromDouble(*(F*)x),r=PyLong_FromLongLong(*(J*)x),r=PyBool_FromLong(*(long*)x),
         r=npy_f(*(U*)x),r=npy_i(*(U*)x),r=npy_b(*(U*)x),
-        ar(t.ty.APi,*(U*)x)
+        r=ar(t.ty.APi,*(U*)x)
     )
     R r;
 }

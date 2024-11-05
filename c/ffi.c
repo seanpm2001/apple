@@ -24,4 +24,5 @@ ffi_cif* apple_ffi(FnTy* ty) {
     R cif;
 }
 
-#define ArgTy(t,fc,i,b,fa,ia,ba,tup) switch(t.f) {C(Sc,switch(t.ty.sa){C(F_t,fc) C(I_t,i) C(B_t,b)}) C(Aa,switch(t.ty.aa){C(F_t,fa) C(I_t,ia) C(B_t,ba)}) C(Pi,tup)};;
+#define ArgTy(t,fc,i,b,fa,ia,ba,...) {switch(t.f) {C(Sc,switch(t.ty.sa){C(F_t,fc) C(I_t,i) C(B_t,b)}) C(Aa,switch(t.ty.aa){C(F_t,fa) C(I_t,ia) C(B_t,ba)}) __VA_ARGS__};};
+#define Ret(t,fc,i,b,fa,ia,ba,pp) ArgTy(t,fc,i,b,fa,ia,ba,C(Pi,pp))
