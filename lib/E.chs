@@ -106,17 +106,20 @@ apple_ty src errPtr = do
                             {# set FnTy.res.f #} sp (hk32 Aa)
                             {# set FnTy.res.ty.aa #} sp (t32 tao)
                         ΠC ts -> do
-                            p <- mallocBytes ({#sizeof apple_Pi#})
+                            let nr=length ts
+                            pp <- mallocBytes (nr*{#sizeof apple_t#})
+                            {# set FnTy.res.f #} sp (hk32 Pi)
+                            {# set FnTy.res.ty.APi.pi_n #} sp (fromIntegral nr::CInt)
+                            {# set FnTy.res.ty.APi.a_pi #} sp pp
                             zipWithM_ (\tϵ n -> do
-                                ap <- mallocBytes {#sizeof apple_t#}
+                                let ap=pp `plusPtr` (n*{#sizeof apple_t#})
                                 case tϵ of
                                     AC taϵ -> do
                                         {# set apple_t.f #} ap (hk32 Aa)
                                         {# set apple_t.ty.aa #} ap (t32 taϵ)
                                     SC taϵ -> do
                                         {# set apple_t.f #} ap (hk32 Sc)
-                                        {# set apple_t.ty.sa #} ap (t32 taϵ)
-                                pokeByteOff p (n*{#sizeof apple_t#}) ap) ts [0..]
+                                        {# set apple_t.ty.sa #} ap (t32 taϵ)) ts [0..]
                     zipWithM_ (\ti n ->
                         case ti of
                             SC tai -> do
