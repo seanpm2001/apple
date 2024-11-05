@@ -15,7 +15,8 @@ instance Pretty CAt where pretty CR="F"; pretty CI="J"; pretty CB="B"
 data CType = SC !CAt | AC !CAt | ΠC [CType]
 
 instance Pretty CType where
-    pretty (SC at)=pretty at; pretty (AC CR)="Af"; pretty (AC CI)="Ai"; pretty (AC CB)="Ab"
+    pretty (AC CR)="Af"; pretty (AC CI)="Ai"; pretty (AC CB)="Ab"
+    pretty (SC at)=pretty at; pretty (ΠC [SC CR,SC CR]) = "F2"
 
 data CF = CF !T.Text [CType] CType
 
@@ -29,7 +30,7 @@ instance Pretty CF where
                 <> pretty out <+> "res" <> "=" <> ax out (pretty n<>tupled (l.snd<$>args))<>";"
                 <> f @<> args
                 <> "R res;")
-        where px (SC CR)="F"; px (SC CI)="J"; px (SC CB)="B"; px _="U"
+        where px (SC CR)="F"; px (SC CI)="J"; px (SC CB)="B"; px (ΠC [SC CR,SC CR])="F2"; px _="U"
               ax (AC at)=(("poke_a"<>wa at)<>).parens;ax _=id;wa CR="f"; wa CI="i"; wa CB="b"
               d (t,var) = px t <+> l var <> "=" <> ax t (pretty var) <> ";"
               f (AC{},var) = "free" <> parens (l var) <> ";"
