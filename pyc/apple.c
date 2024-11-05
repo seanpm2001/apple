@@ -35,11 +35,23 @@ NPA(npy_i,8,NPY_INT64)
 NPA(npy_f,8,NPY_FLOAT64)
 NPA(npy_b,1,NPY_BOOL)
 
+PY apy(apple_t,U);
+
+PY ar(apple_Pi t, U x){
+    int n=t.pi_n;
+    PY r=PyTuple_New(n);
+    SA(U,ret);
+    // libffi passes pointers as pointers-to-pointers
+    DO(i,n,ret[0]=((U*)x)[i];PyTuple_SetItem(r,i,apy(t.a_pi[i],ret)))
+    R r;
+}
+
 PY apy(apple_t t, U x){
     PY r;
     ArgTy(t,
         r=PyFloat_FromDouble(*(F*)x),r=PyLong_FromLongLong(*(J*)x),r=PyBool_FromLong(*(long*)x),
-        r=npy_f(*(U*)x),r=npy_i(*(U*)x),r=npy_b(*(U*)x)
+        r=npy_f(*(U*)x),r=npy_i(*(U*)x),r=npy_b(*(U*)x),
+        ar(t.ty.APi,*(U*)x)
     )
     R r;
 }

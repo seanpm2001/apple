@@ -6,7 +6,6 @@
 #define G static const
 #define SZ sizeof
 // https://github.com/tlack/b-decoded/blob/3c21a33a5c3f5d39f75014e10f875fe830a8b326/orig-files/c.h#L8
-#define C(i,a) case i:{a;}break;
 #define SA(t,x) t* x=alloca(SZ(t))
 #define $(p,a) if(p){a;}else
 
@@ -25,4 +24,4 @@ ffi_cif* apple_ffi(FnTy* ty) {
     R cif;
 }
 
-#define ArgTy(t,fc,i,b,fa,ia,ba) switch(t.f) {C(Sc,switch(t.ty.sa){C(F_t,fc) C(I_t,i) C(B_t,b)}) C(Aa,switch(t.ty.aa){C(F_t,fa) C(I_t,ia) C(B_t,ba)})};;
+#define ArgTy(t,fc,i,b,fa,ia,ba,tup) switch(t.f) {C(Sc,switch(t.ty.sa){C(F_t,fc) C(I_t,i) C(B_t,b)}) C(Aa,switch(t.ty.aa){C(F_t,fa) C(I_t,ia) C(B_t,ba)}) C(Pi,tup)};;
