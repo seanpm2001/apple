@@ -12,6 +12,7 @@ import qualified Data.IntSet                      as IS
 import           Data.List                        (uncons)
 import qualified Data.Map                         as M
 import           Data.Tuple.Extra                 (second3, snd3, thd3, third3)
+import           Q
 
 type N=Int
 
@@ -223,7 +224,7 @@ uA (TupM _ (Just l))  = singleton l
 uA (TupM _ Nothing)   = IS.empty
 uA (AElem _ r ei l _) = m'insert l (uE r<>uE ei)
 uA (Raw _ e l _)      = m'insert l (uE e)
-uA (At _ ss ixs l _)  = m'insert l (foldMap uE ss<>foldMap uE ixs)
+uA (At _ ss ixs l _)  = m'insert l (uE@<>ss<>uE@<>ixs)
 
 uses :: CS a -> IS.IntSet
 uses (Ma _ _ _ r n _)      = uE r<>uE n
@@ -240,7 +241,7 @@ uses (MB _ _ e)            = uB e
 uses (WrP _ a e)           = uA a<>uB e
 uses Rnd{}                 = IS.empty
 uses FRnd{}                = IS.empty
-uses (PlProd _ _ es)       = foldMap uE es
+uses (PlProd _ _ es)       = uE@<>es
 uses (SZ _ _ _ e (Just l)) = sinsert l (uE e)
 uses (SZ _ _ _ e Nothing)  = uE e
 uses (Pop8 _ e)            = uE e

@@ -118,6 +118,7 @@ library
         Asm.M
         Asm.CF
         Nm.IntMap
+        Q
 
     default-language:   Haskell2010
     default-extensions:

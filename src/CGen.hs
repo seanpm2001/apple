@@ -6,6 +6,7 @@ import           Data.Bifunctor    (first)
 import qualified Data.Text         as T
 import           Prettyprinter     (Doc, Pretty (..), braces, parens, softline', tupled, (<+>))
 import           Prettyprinter.Ext
+import           Q
 
 data CAt = CR | CI | CB
 
@@ -24,9 +25,9 @@ instance Pretty CF where
         "extern" <+> pretty out <+> pretty n <+> tupled (px<$>ins) <> ";"
             <#> px out <+> pretty n <> "_wrapper" <+> tupled (fmap (\(t,var) -> pretty t <+> pretty var) args)
             <> softline' <> braces
-                (foldMap d args
+                (d @<> args
                 <> pretty out <+> "res" <> "=" <> ax out (pretty n<>tupled (l.snd<$>args))<>";"
-                <> foldMap f args
+                <> f @<> args
                 <> "R res;")
         where px (SC CR)="F"; px (SC CI)="J"; px (SC CB)="B"; px _="U"
               ax (AC at)=(("poke_a"<>wa at)<>).parens;ax _=id;wa CR="f"; wa CI="i"; wa CB="b"

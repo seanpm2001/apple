@@ -22,6 +22,7 @@ import           Data.Word         (Word64)
 import           Op
 import           Prettyprinter     (Doc, Pretty (..), brackets, comma, dot, hardline, indent, lbrace, parens, rbrace, tupled, (<+>))
 import           Prettyprinter.Ext
+import           Q
 
 type Label=Word; type AsmData = IM.IntMap [Word64]
 
@@ -78,7 +79,7 @@ instance Pretty ArrAcc where
     pretty (AElem t _ e _ _) = pretty t <> brackets (pretty e)
     pretty (ADim t e _)      = pretty t <> dot <> "dim" <> brackets (pretty e)
     pretty (ARnk t _)        = "rnk" <> parens (pretty t)
-    pretty (At t s ix _ _)   = pretty t <> foldMap (brackets.pretty) ix <+> foldMap (parens.pretty) s
+    pretty (At t s ix _ _)   = pretty t <> (brackets.pretty) @<> ix <+> (parens.pretty) @<> s
     pretty (Raw t o _ _)     = pretty t <> "@" <> pretty o
     pretty (TupM t _)        = "tup@" <> pretty t
 

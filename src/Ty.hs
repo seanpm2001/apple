@@ -28,6 +28,7 @@ import           Nm
 import           Nm.IntMap
 import           Prettyprinter                    (Doc, Pretty (..), hardline, indent, squotes, (<+>))
 import           Prettyprinter.Ext
+import           Q
 import           Sh
 import           Ty.Clone
 import           U
@@ -394,8 +395,8 @@ occ I                     = IS.empty
 occ F                     = IS.empty
 occ B                     = IS.empty
 occ Li{}                  = IS.empty
-occ (P ts)                = foldMap occ ts
-occ (Ρ (Nm _ (U i) _) rs) = IS.insert i $ foldMap occ rs
+occ (P ts)                = occ @<> ts
+occ (Ρ (Nm _ (U i) _) rs) = IS.insert i $ occ @<> rs
 
 scalar sv = mapShSubst (insert sv Nil)
 
