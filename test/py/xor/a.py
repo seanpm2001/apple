@@ -18,7 +18,7 @@ train=apple.jit('''
   sum ⇐ [(+)/x];
   -- ho: 4x2
   -- prediction: 4
-  ho ⟜ sigmoid`{0} ([(+)`bh x]'(X%.wh));
+  ho ⟜ sigmoid`{0} ([(+)`(bh::Vec 2 float) x]'(X%.wh));
   prediction ⟜ (sigmoid ∴ (+bo))'(ho%:wo);
   l1E ← (-)`Y prediction;
   l1Δ ⟜ (*)`(sDdx'prediction) l1E; -- 4
