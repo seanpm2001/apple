@@ -20,7 +20,7 @@ In the REPL, type `\l`.
 ⋉             max                      ⋊             min
 ⍳             integer range            ⌊             floor
 ℯ             exp                      ⨳ {m,n}       convolve
-\~            successive application   \`n           dyadic infix
+\~            successive application   \`n           infix
 _.            log                      'n            map
 `             zip                      `{i,j∘[k,l]}  rank
 𝒻             range (real)             𝜋             pi
@@ -283,7 +283,7 @@ Arr (3×2) [ [1.0, 0.0]
 Vec 10 [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
 ```
 
-## Dyadic Infix
+## Infix
 
 Moving average:
 
@@ -363,9 +363,9 @@ Sigmoid on an arbitrary-dimension array:
  > ⟨⟨0,1,2⟩,⟨3,4,5::int⟩⟩
 Arr (2×3) [ [0, 1, 2]
           , [3, 4, 5] ]
- > {sum←[(+)/x]; sum`{1} ⟨⟨0,1,2⟩,⟨3,4,5::int⟩⟩}
+ > ((+)/)`{1} ⟨⟨0,1,2⟩,⟨3,4,5::int⟩⟩
 Vec 3 [3, 5, 7]
- > {sum←[(+)/x]; sum`{1∘[2]} ⟨⟨0,1,2⟩,⟨3,4,5::int⟩⟩}
+ > ((+)/)`{1∘[2]} ⟨⟨0,1,2⟩,⟨3,4,5::int⟩⟩
 Vec 2 [3, 12]
 ```
 
@@ -419,7 +419,7 @@ Use `->n` to access the `n`th element of a tuple, viz.
 
 ## Convolve
 
-Convolve `(⨳ {m,n})` is like [dyadic infix](#dyadic-infix) for higher-rank
+Convolve `(⨳ {m,n})` is like [infix](#infix) for higher-rank
 windows.
 
 ```
@@ -769,12 +769,12 @@ In Apple we can generate the first `N` coefficients alongside the offsets with:
   ; pxs ← (+)Λ dxs; pys ← (+)Λ dys; pts ⟜ (+)Λₒ 0 dts; T ⟜}. pts
   ; coeffs ← λn.
     { n ⟜ ℝn; k ⟜ 2*n*𝜋%T
+    ; c ⟜ T%(2*n^2*𝜋^2)
     ; cosDiffs ⟜ (-)\~([cos.(k*x)]'pts)
     ; sinDiffs ⟜ (-)\~([sin.(k*x)]'pts)
-    ; c ⟜ T%(2*n^2*𝜋^2)
     ; aₙ ← c*sum ((*)`dxss cosDiffs)
-    ; bₙ ← c*sum ((*)`dxss sinDiffs)
     ; cₙ ← c*sum ((*)`dyss cosDiffs)
+    ; bₙ ← c*sum ((*)`dxss sinDiffs)
     ; dₙ ← c*sum ((*)`dyss sinDiffs)
     ; (aₙ,bₙ,cₙ,dₙ)
     }
@@ -991,5 +991,5 @@ thence speeds compilation.
 }
 ```
 
-Note that Apple does not have imports so we have to re-type the definition of
+Apple does not have imports so we have to re-type the definition of
 the gamma function each time.
