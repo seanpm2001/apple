@@ -12,35 +12,31 @@ import           Data.Tuple.Extra (fst3, snd3, thd3)
 
 type K=Int
 
--- move list: map from abstract registers (def ∪ used) to nodes
+-- move list; map from abstract registers (def ∪ used) to nodes
 type Movs = IM.IntMap MS
 type GS = S.Set (Int, Int)
 type GL = IM.IntMap [Int]
 
 -- TODO: might work as lazy lists idk (deletion)
 -- difference would still be annoying though...
-data Wk = Wk { pre :: IS.IntSet, sp :: IS.IntSet, fr :: IS.IntSet, simp :: IS.IntSet }
+data Wk = Wk { pre, sp, fr, simp :: IS.IntSet }
 
-mapSp f w = w { sp = f (sp w) }
-mapFr f w = w { fr = f (fr w) }
+mapSp f w = w { sp = f (sp w) }; mapFr f w = w { fr = f (fr w) }
 mapSimp f w = w { simp = f (simp w) }
 
 type M = (Int, Int); type MS = S.Set M
 
 -- TODO: appel says to make these doubly-linked lists
-data Mv = Mv { coal :: MS, constr :: MS, frz :: MS, wl :: MS, actv :: MS }
+data Mv = Mv { coal, constr, frz, wl, actv :: MS }
 
-mapWl f mv = mv { wl = f (wl mv) }
-mapActv f mv = mv { actv = f (actv mv) }
-mapCoal f mv = mv { coal = f (coal mv) }
-mapFrz f mv = mv { frz = f (frz mv) }
+mapWl f mv = mv { wl = f (wl mv) }; mapActv f mv = mv { actv = f (actv mv) }
+mapCoal f mv = mv { coal = f (coal mv) }; mapFrz f mv = mv { frz = f (frz mv) }
 mapConstr f mv = mv { constr = f (constr mv) }
 
-data Ns = Ns { coalN :: IS.IntSet, colN :: IS.IntSet, spN :: IS.IntSet }
+data Ns = Ns { coalN, colN, spN :: IS.IntSet }
 
+mapColN f ns = ns { colN = f (colN ns) }; mapSpN f ns = ns { spN = f (spN ns) }
 mapCoalN f ns = ns { coalN = f (coalN ns) }
-mapColN f ns = ns { colN = f (colN ns) }
-mapSpN f ns = ns { spN = f (spN ns) }
 
 data St = St { mvs :: Movs, aS :: GS, aL :: GL, mvS :: Mv, ɴs :: Ns, degs :: !(IM.IntMap Int), initial :: [Int], wkls :: Wk, stack :: [Int], alias :: !(IM.IntMap Int) }
 
