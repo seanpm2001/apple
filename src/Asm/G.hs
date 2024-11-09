@@ -73,13 +73,13 @@ getIs = foldMap (g.copoint) where g (Liveness is os _ _) = is<>os
 getIFs :: Copointed p => [p Liveness] -> IS.IntSet
 getIFs = foldMap (g.copoint) where g (Liveness _ _ fis fos) = fis<>fos
 
-{-# SCC buildOver #-}
-buildOver :: Copointed p => [[p (UD, Liveness, Maybe M)]] -> St -> St
-buildOver blocks = thread [ \s -> snd $ build (out (snd3 (copoint (last isns)))) s (reverse isns) | isns <- blocks ]
+{-# SCC builds #-}
+builds :: Copointed p => [[p (UD, Liveness, Maybe M)]] -> St -> St
+builds bs = thread [ \s -> snd $ build (out (snd3 (copoint (last isns)))) s (reverse isns) | isns <- bs ]
 
-{-# SCC buildOverF #-}
-buildOverF :: Copointed p => [[p (UD, Liveness, Maybe M)]] -> St -> St
-buildOverF blocks = thread [ \s -> snd $ buildF (fout (snd3 (copoint (last isns)))) s (reverse isns) | isns <- blocks ]
+{-# SCC buildsF #-}
+buildsF :: Copointed p => [[p (UD, Liveness, Maybe M)]] -> St -> St
+buildsF bs = thread [ \s -> snd $ buildF (fout (snd3 (copoint (last isns)))) s (reverse isns) | isns <- bs ]
 
 alloc :: (Ord reg, Arch arch areg afreg af2, Copointed (arch areg afreg af2))
       => [arch areg afreg af2 (UD, Liveness, Maybe (Int,Int))]
@@ -88,7 +88,7 @@ alloc :: (Ord reg, Arch arch areg afreg af2, Copointed (arch areg afreg af2))
       -> IM.IntMap reg -- ^ Precolored map
       -> Either IS.IntSet (IM.IntMap reg) -- ^ Map from abs reg. id (temp) to concrete reg.
 alloc aIsns regs preC preCM =
-    let st0 = buildOver (unBB<$>bb aIsns) (emptySt preC (IS.toList $ getIs nIsns IS.\\ preC))
+    let st0 = builds (unBB<$>bb aIsns) (emptySt preC (IS.toList $ getIs nIsns IS.\\ preC))
         st1 = mkWorklist ᴋ st0
         st2 = emptyWkl ᴋ st1
         (st3, rs) = assign preCM regs st2
@@ -103,7 +103,7 @@ allocF :: (Ord freg, Arch arch areg afreg af2, Copointed (arch areg afreg af2))
        -> IM.IntMap freg -- ^ Precolored map
        -> Either IS.IntSet (IM.IntMap freg) -- ^ Map from abs freg. id (temp) to concrete reg.
 allocF aIsns regs preC preCM =
-    let st0 = buildOverF (unBB<$>bb aIsns) (emptySt preC (IS.toList $ getIFs nIsns IS.\\ preC))
+    let st0 = buildsF (unBB<$>bb aIsns) (emptySt preC (IS.toList $ getIFs nIsns IS.\\ preC))
         st1 = mkWorklist ᴋ st0
         st2 = emptyWkl ᴋ st1
         (st3, rs) = assign preCM regs st2
