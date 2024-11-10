@@ -27,4 +27,4 @@ data ControlAnn = ControlAnn { node :: !Int
                              , ud   :: !UD
                              }
 
-data UD = UD { usesNode, usesFNode, defsNode, defsFNode  :: !IS.IntSet }
+data UD = UD { usesNode, usesFNode, defsNode, defsFNode :: !IS.IntSet }
