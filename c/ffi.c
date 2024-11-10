@@ -5,8 +5,8 @@
 
 #define G static const
 #define SZ sizeof
-// https://github.com/tlack/b-decoded/blob/3c21a33a5c3f5d39f75014e10f875fe830a8b326/orig-files/c.h#L8
 #define SA(t,x) t* x=alloca(SZ(t))
+// https://github.com/tlack/b-decoded/blob/3c21a33a5c3f5d39f75014e10f875fe830a8b326/orig-files/c.h#L8
 #define $(p,a) if(p){a;}else
 
 #define F(r,t) {$(t.f==Sc,{switch(t.ty.sa){C(I_t,r=&ffi_type_sint64) C(B_t,r=&ffi_type_uint8) C(F_t,r=&ffi_type_double)}}) {r=&ffi_type_pointer;}}
