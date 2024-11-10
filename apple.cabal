@@ -1,7 +1,7 @@
-cabal-version:      2.0
+cabal-version:      2.2
 name:               apple
 version:            0.3.0.0
-license:            AGPL-3
+license:            AGPL-3.0-only
 license-file:       LICENSE
 copyright:          Copyright: (c) 2022 Vanessa McHale
 maintainer:         vamchale@gmail.com
@@ -44,7 +44,16 @@ source-repository head
     type:     git
     location: https://github.com/vmchale/apple
 
+common warn
+    default-language: Haskell2010
+    ghc-options:
+        -Wall -fno-warn-missing-signatures -Wno-x-partial
+        -Wincomplete-uni-patterns -Wincomplete-record-updates
+        -Wredundant-constraints -Widentities -Wmissing-export-lists
+        -Wcpp-undef -Wunused-packages -Wno-operator-whitespace-ext-conflict
+
 library
+    import: warn
     exposed-modules:
         Dbg
         P
@@ -120,7 +129,6 @@ library
         Nm.IntMap
         Q
 
-    default-language:   Haskell2010
     default-extensions:
         DeriveFoldable DeriveFunctor LambdaCase OverloadedStrings
         TupleSections
@@ -129,12 +137,6 @@ library
         RankNTypes FlexibleContexts MagicHash BinaryLiterals
         ScopedTypeVariables MultiParamTypeClasses
         GeneralizedNewtypeDeriving
-
-    ghc-options:
-        -Wall -fno-warn-missing-signatures -Wno-x-partial
-        -Wincomplete-uni-patterns -Wincomplete-record-updates
-        -Wredundant-constraints -Widentities -Wmissing-export-lists
-        -Wcpp-undef
 
     build-depends:
         base >=4.17 && <5,
@@ -161,16 +163,12 @@ library
         ghc-options: -Wno-operator-whitespace-ext-conflict
 
 library as
+    import: warn
     exposed-modules:
         H
     other-modules: Nasm, As
 
     hs-source-dirs:   as
-    default-language: Haskell2010
-    ghc-options:
-        -Wall -Wno-x-partial -Wincomplete-uni-patterns
-        -Wincomplete-record-updates -Wredundant-constraints -Widentities
-        -Wmissing-export-lists -Wcpp-undef
 
     build-depends:
         base,
@@ -185,18 +183,14 @@ library as
         ghc-options: -Wunused-packages
 
 foreign-library apple
+    import:             warn
     type:               native-shared
     build-tool-depends: c2hs:c2hs >=0.19.1
     hs-source-dirs:     lib
     other-modules:      E
-    default-language:   Haskell2010
     include-dirs:       include
     install-includes:   apple.h
                         m.h
-    ghc-options:
-        -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates
-        -Wredundant-constraints -Wmissing-export-lists
-        -Wno-missing-signatures
 
     build-depends:
         base,
@@ -215,15 +209,11 @@ foreign-library apple
         ghc-options: -Wunused-packages
 
 executable atc
+    import:           warn
     main-is:          Main.hs
     hs-source-dirs:   app
     other-modules:    Paths_apple
     autogen-modules:  Paths_apple
-    default-language: Haskell2010
-    ghc-options:
-        -Wall -Wno-x-partial -Wincomplete-uni-patterns
-        -Wincomplete-record-updates -Wredundant-constraints -Widentities
-        -Wmissing-export-lists -Wcpp-undef
 
     build-depends:
         base,
@@ -235,15 +225,11 @@ executable atc
         ghc-options: -Wunused-packages
 
 executable writeo
+    import:           warn
     main-is:          Main.hs
     hs-source-dirs:   exe
     other-modules:    Paths_apple
     autogen-modules:  Paths_apple
-    default-language: Haskell2010
-    ghc-options:
-        -Wall -Wno-x-partial -Wincomplete-uni-patterns
-        -Wincomplete-record-updates -Wredundant-constraints -Widentities
-        -Wcpp-undef -Wmissing-export-lists
 
     build-depends:
         base,
@@ -255,17 +241,12 @@ executable writeo
         ghc-options: -Wunused-packages
 
 executable arepl
+    import:           warn
     main-is:          Main.hs
     other-modules:    QC
     hs-source-dirs:   run
-    default-language: Haskell2010
     default-extensions:
         OverloadedStrings
-    ghc-options:
-        -Wall -Wno-missing-signatures -Wno-x-partial
-        -Wincomplete-uni-patterns -Wincomplete-record-updates
-        -Wredundant-constraints -Widentities -Wmissing-export-lists
-        -Wcpp-undef -Wno-operator-whitespace-ext-conflict
 
     build-depends:
         base,
@@ -287,15 +268,11 @@ executable arepl
         ghc-options: -Wunused-packages
 
 test-suite apple-test
+    import:             warn
     type:               exitcode-stdio-1.0
     main-is:            Spec.hs
     hs-source-dirs:     test
-    default-language:   Haskell2010
-    ghc-options:
-        -threaded -rtsopts "-with-rtsopts=-N -k1k" -Wall
-        -fno-warn-missing-signatures -Wincomplete-uni-patterns
-        -Wincomplete-record-updates -Wredundant-constraints -Widentities
-        -Wmissing-export-lists -Wcpp-undef
+    ghc-options:        -threaded -rtsopts "-with-rtsopts=-N -k1k"
 
     build-depends:
         base,
@@ -312,15 +289,11 @@ test-suite apple-test
         ghc-options: -Wunused-packages
 
 test-suite apple-o
+    import:           warn
     type:             exitcode-stdio-1.0
     main-is:          Test.hs
     hs-source-dirs:   of
-    default-language: Haskell2010
-    ghc-options:
-        -rtsopts -with-rtsopts=-k1k -Wall
-        -fno-warn-missing-signatures -Wincomplete-uni-patterns
-        -Wincomplete-record-updates -Wredundant-constraints -Widentities
-        -Wmissing-export-lists -Wcpp-undef
+    ghc-options:      -rtsopts -with-rtsopts=-k1k
 
     build-depends:
         base,
@@ -337,14 +310,11 @@ test-suite apple-o
         ghc-options: -Wunused-packages
 
 benchmark apple-bench
+    import:             warn
     type:               exitcode-stdio-1.0
     main-is:            Bench.hs
     hs-source-dirs:     bench
-    default-language:   Haskell2010
-    ghc-options:
-        -rtsopts -Wall -Wincomplete-uni-patterns
-        -Wincomplete-record-updates -Wredundant-constraints -Widentities
-        -Wmissing-export-lists -Wcpp-undef
+    ghc-options:        -rtsopts
 
     build-depends:
         base,
