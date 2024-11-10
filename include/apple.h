@@ -16,14 +16,14 @@ T apple_aarch64(K char*, T*);
 T apple_dumpir(K char*, T*);
 T apple_print_ts_sz(K char*, S*, T*);
 
-enum apple_at{I_t=1,F_t=2,B_t=3};
+TD apple_at{I_t=1,F_t=2,B_t=3} apple_at;
 
-enum HK{Sc,Aa,Pi};
+TD HK{Sc,Aa,Pi} HK;
 
 TS apple_P{int pi_n; struct apple_t* a_pi;} apple_P;
 
 // https://stackoverflow.com/questions/20752551/working-with-a-union-of-structs-in-c
-TS apple_t {enum HK f; union {enum apple_at sa; enum apple_at aa; apple_P APi;} ty;} apple_t;
+TS apple_t {HK f; union {apple_at sa; apple_at aa; apple_P APi;} ty;} apple_t;
 
 TS FnTy {int argc; apple_t* args; apple_t res;} FnTy;
 
