@@ -182,7 +182,7 @@ data Builtin = Plus | Minus | Times | Div | IntExp | Exp | Log
              | Conv [Int] | TAt !Int | Last | LastM | ConsE | Snoc
              | Mul | VMul | Outer | R | Head | HeadM | Tail | Init | RevE
              | TailM | InitM
-             | Sin | Cos | Rot | Tan | Cyc | A1 | Even | Odd | IOf | Abs
+             | Sin | Cos | Tan | Rot | Cyc | A1 | Even | Odd | IOf | Abs
              | And | Or | Xor | N | Sr | Sl | C
              deriving (Generic)
              -- TODO: (feuilleter, stagger, ...) reshape...?
