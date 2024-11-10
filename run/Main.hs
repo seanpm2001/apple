@@ -264,7 +264,7 @@ disasm :: String -> Repl AlexPosn ()
 disasm s = do
     st <- lg _lex
     case rwP st (ubs s) of
-        Left err -> liftIO $ putDoc (pretty err <> hardline)
+        Left err -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
             a <- lg _arch
@@ -278,7 +278,7 @@ cR :: String -> Repl AlexPosn ()
 cR s = do
     st <- lg _lex
     case rwP st (ubs s) of
-        Left err -> liftIO $ putDoc (pretty err <> hardline)
+        Left err -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
             liftIO $ case eDumpC i eC of
@@ -289,7 +289,7 @@ irR :: String -> Repl AlexPosn ()
 irR s = do
     st <- lg _lex
     case rwP st (ubs s) of
-        Left err -> liftIO $ putDoc (pretty err <> hardline)
+        Left err -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
             liftIO $ case eDumpIR i eC of
@@ -300,7 +300,7 @@ dumpAsm :: String -> Repl AlexPosn ()
 dumpAsm s = do
     st <- lg _lex
     case rwP st (ubs s) of
-        Left err -> liftIO $ putDoc (pretty err <> hardline)
+        Left err -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
             a <- lg _arch
@@ -313,22 +313,22 @@ tyExprR :: String -> Repl AlexPosn ()
 tyExprR s = do
     st <- lg _lex
     case rwP st (ubs s) of
-        Left err -> liftIO $ putDoc (pretty err <> hardline)
+        Left err -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
             liftIO $ case tyClosed i eC of
-                Left err      -> putDoc (pretty err <> hardline)
+                Left err      -> pErr err
                 Right (e,c,_) -> putDoc (prettyC (eAnn e, c) <> hardline)
 
 annR :: String -> Repl AlexPosn ()
 annR s = do
     st <- lg _lex
     case rwP st (ubs s) of
-        Left err    -> liftIO $ putDoc (pretty err <> hardline)
+        Left err    -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
             liftIO $ case tyClosed i eC of
-                Left err      -> putDoc (pretty err <> hardline)
+                Left err      -> pErr err
                 Right (e,_,_) -> putDoc (prettyTyped e <> hardline)
 
 freeAsm (sz, fp, mp) = freeFunPtr sz fp -- *> traverse_ free mp
@@ -347,11 +347,11 @@ inspect :: String -> Repl AlexPosn ()
 inspect s = do
     st <- lg _lex
     case rwP st bs of
-        Left err -> liftIO $ putDoc (pretty err <> hardline)
+        Left err -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
             case tyC i eC of
-                Left err -> liftIO $ putDoc (pretty err <> hardline)
+                Left err -> pErr err
                 Right (e, _, i') -> do
                     a <- lg _arch; c <- lg mf
                     let efp=case a of {X64 -> eFunP i' c; AArch64 m -> eAFunP i' (c,m)}
@@ -373,7 +373,7 @@ iCtx f fp = do
             st <- lg _lex
             bs <- liftIO $ BSL.readFile fp
             case tyParseCtx st bs of
-                Left err -> liftIO $ putDoc (pretty err <> hardline)
+                Left err -> pErr err
                 Right (_,i) ->
                     let (st', n) = newIdent (AlexPn 0 0 0) (T.pack f) (setM i st)
                         x' = parseE st' bs
@@ -382,7 +382,7 @@ iCtx f fp = do
 
 benchC :: String -> Repl AlexPosn ()
 benchC s = case tyParse bs of
-    Left err -> liftIO $ putDoc (pretty err <> hardline)
+    Left err -> pErr err
     Right _ -> do
         c <- lg mf; a <- lg _arch
         let cfp=case a of {X64 -> ctxFunP c; AArch64 m -> actxFunP (c,m)}
@@ -398,11 +398,11 @@ qc :: String -> Repl AlexPosn ()
 qc s = do
     st <- lg _lex
     case rwP st bs of
-        Left err -> liftIO $ putDoc (pretty err <> hardline)
+        Left err -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
             case tyC i eC of
-                Left err -> liftIO $ putDoc (pretty err <> hardline)
+                Left err -> pErr err
                 Right (e, _, i') -> do
                     c <- lg mf; a <- lg _arch
                     let efp=case a of {X64 -> eFunP i' c; AArch64 m -> eAFunP i' (c,m)}
@@ -520,7 +520,7 @@ printExpr :: String -> Repl AlexPosn ()
 printExpr s = do
     st <- lg _lex
     case rwP st bs of
-        Left err -> liftIO $ putDoc (pretty err <> hardline)
+        Left err -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
             case tyC i eC of
@@ -528,7 +528,7 @@ printExpr s = do
                     Left e -> putDoc (pretty e <> hardline)
                     Right (e, c, _) ->
                         let t=eAnn e in putDoc (pretty e <+> ":" <+> prettyC (t, c) <> hardline)
-                Left err -> liftIO $ putDoc (pretty err <> hardline)
+                Left err -> pErr err
                 Right (eLi, _, i') -> do
                     c <- lg mf; a <- lg _arch
                     let efp=case a of {X64 -> eFunP i' c; AArch64 ma -> eAFunP i' (c,ma)}
