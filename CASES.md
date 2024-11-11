@@ -1,10 +1,12 @@
 - [ ] fold-of-array
 - [ ] scan-of-array
 - [ ] rank for scalars...
+  - [ ] : 0.0 (size)
 - [ ] scan tup
 - [ ] fold tup?
 - [x] snoc array, cons array
 - [ ] fold, producing tuple
+- [ ] filter-on-array
 - [ ] don't crash when stack-allocated tuples, arrays containing bools
 - [x] equality on arrays
   - [ ] equality on tup
@@ -12,3 +14,4 @@
 - [ ] scan-with-seed accept differently typed seed
 - [ ] fold-with-seed generalize type
 - [ ] also the folds ^ are backwards lol
+- [ ] `hasbits` instance for boolean arrays?
