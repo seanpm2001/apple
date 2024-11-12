@@ -1621,8 +1621,7 @@ feval (EApp _ (EApp _ (EApp _ (Builtin _ FoldS) op) seed) (EApp _ (EApp _ (EApp 
     pure $ plStart ++ plAcc ++ plEnd ++ plI [While () i ILeq (Tmp endR) (ss++[i+=iE])]
 feval (EApp _ (EApp _ (EApp _ (Builtin _ FoldS) op) seed) (EApp ty (EApp _ (EApp _ (Builtin _ FRange) start) end) nSteps)) acc = do
     i <- nI; startR <- nF; incrR <- nF; xR <- nF; endI <- nI
-    plStart <- feval start startR
-    plAcc <- feval seed acc
+    plStart <- feval start startR; plAcc <- feval seed acc
     plEnd <- eval nSteps endI
     plIncr <- feval ((end `eMinus` start) `eDiv` (EApp F (Builtin (Arrow I F) ItoF) nSteps `eMinus` FLit F 1)) incrR
     ss <- writeRF op [FT acc, FT xR] (FT acc)
