@@ -152,13 +152,9 @@ eRnk :: Sh a -> (Temp, Maybe AL) -> CE
 eRnk sh (xR, lX) | Just i <- staRnk sh = ConstI i
                  | otherwise = EAt (ARnk xR lX)
 
-ev :: T a -> (Temp, Maybe AL) -> CE
-ev (Arr (Ix _ i `Cons` _) _) _ = ConstI$fromIntegral i
-ev _ (xR, lX)                  = EAt (ADim xR 0 lX)
-
-ec :: T a -> (Temp, Maybe AL) -> CE
-ec (Arr (_ `Cons` Ix _ j `Cons` _) _) _ = ConstI$fromIntegral j
-ec _ (xR, lX)                           = EAt (ADim xR 1 lX)
+ev, ec :: T a -> (Temp, Maybe AL) -> CE
+ev (Arr (Ix _ i `Cons` _) _) _ = ConstI$fromIntegral i; ev _ (xR, lX) = EAt (ADim xR 0 lX)
+ec (Arr (_ `Cons` Ix _ j `Cons` _) _) _ = ConstI$fromIntegral j; ec _ (xR, lX) = EAt (ADim xR 1 lX)
 
 tRnk :: T a -> Maybe (T a, Int64)
 tRnk (Arr sh t) = (t,) <$> staRnk sh
