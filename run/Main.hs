@@ -189,12 +189,12 @@ del :: String -> Repl AlexPosn ()
 del s = lift $ modify (mE (filter (\(Nm n _ _, _) -> n /= st))) where st=T.pack s
 
 listCtx :: Repl AlexPosn ()
-listCtx = do {bs <- lg ee; liftIO $ putDoc (prettyLines (pretty.fst<$>bs)<>hardline)}
+listCtx = do {bs <- lg ee; liftIO $ putDocLn (prettyLines (pretty.fst<$>bs))}
 
 graph :: String -> Repl AlexPosn ()
 graph s = liftIO $ case dumpX86Ass (ubs s) of
-    Left err -> putDoc (pretty err <> hardline)
-    Right d  -> putDoc (d <> hardline)
+    Left err -> putDocLn (pretty err)
+    Right d  -> putDocLn d
 
 showHelp :: Repl AlexPosn ()
 showHelp = liftIO $ putStr $ concat
@@ -271,7 +271,7 @@ disasm s = do
             let d=case a of {X64 -> eDtxt; AArch64{} -> edAtxt}
             res <- liftIO $ d i eC
             liftIO $ case res of
-                Left err -> putDoc (pretty err <> hardline)
+                Left err -> putDocLn (pretty err)
                 Right b  -> TIO.putStr b
 
 cR :: String -> Repl AlexPosn ()
@@ -282,8 +282,8 @@ cR s = do
         Right (eP, i) -> do
             eC <- eRepl eP
             liftIO $ case eDumpC i eC of
-                Left err -> putDoc (pretty err <> hardline)
-                Right d  -> putDoc (d <> hardline)
+                Left err -> putDocLn (pretty err)
+                Right d  -> putDocLn d
 
 irR :: String -> Repl AlexPosn ()
 irR s = do
@@ -293,8 +293,8 @@ irR s = do
         Right (eP, i) -> do
             eC <- eRepl eP
             liftIO $ case eDumpIR i eC of
-                Left err -> putDoc (pretty err <> hardline)
-                Right d  -> putDoc (d <> hardline)
+                Left err -> putDocLn (pretty err)
+                Right d  -> putDocLn d
 
 dumpAsm :: String -> Repl AlexPosn ()
 dumpAsm s = do
@@ -306,8 +306,8 @@ dumpAsm s = do
             a <- lg _arch
             let dump = case a of {X64 -> eDumpX86; AArch64{} -> eDumpAarch64}
             liftIO $ case dump i eC of
-                Left err -> putDoc (pretty err <> hardline)
-                Right d  -> putDoc (d <> hardline)
+                Left err -> putDocLn (pretty err)
+                Right d  -> putDocLn d
 
 tyExprR :: String -> Repl AlexPosn ()
 tyExprR s = do
@@ -318,7 +318,7 @@ tyExprR s = do
             eC <- eRepl eP
             liftIO $ case tyClosed i eC of
                 Left err      -> pErr err
-                Right (e,c,_) -> putDoc (prettyC (eAnn e, c) <> hardline)
+                Right (e,c,_) -> putDocLn (prettyC (eAnn e, c))
 
 annR :: String -> Repl AlexPosn ()
 annR s = do
@@ -329,7 +329,7 @@ annR s = do
             eC <- eRepl eP
             liftIO $ case tyClosed i eC of
                 Left err      -> pErr err
-                Right (e,_,_) -> putDoc (prettyTyped e <> hardline)
+                Right (e,_,_) -> putDocLn (prettyTyped e)
 
 freeAsm (sz, fp, mp) = freeFunPtr sz fp -- *> traverse_ free mp
 
@@ -419,8 +419,8 @@ qc s = do
                                         else Just es <$ traverse_ freeP (catMaybes mps))
                             res <- loopϵ (100::Int)
                             case res of
-                                Nothing -> putDoc ("Passed, 100." <> hardline)
-                                Just ex -> putDoc ("Proposition failed!" <> hardline <> pretty ex <> hardline)
+                                Nothing -> putDocLn ("Passed, 100.")
+                                Just ex -> putDocLn ("Proposition failed!" <> hardline <> pretty ex)
                             freeAsm asm
 
   where bs = ubs s
@@ -465,7 +465,7 @@ benchE s = do
                                 asm@(_, fp, _) <- efp eC
                                 benchmark (nfIO (do{p<- callFFI fp (retPtr undefined) []; free p}))
                                 freeAsm asm
-                        A.Arrow{} -> liftIO $ putDoc ("Cannot benchmark a function without arguments" <> hardline)
+                        A.Arrow{} -> liftIO $ putDocLn ("Cannot benchmark a function without arguments")
     where bs = ubs s
 
 rSz A.B=1; rSz I=8; rSz A.F=8; rSz (P ts) = sum (rSz<$>ts); rSz Arr{}=8
@@ -516,6 +516,8 @@ freeByT Arr{} p  = free p
 freeByT (P ts) p = let ds = offs ts in zipWithM_ (use freeByT) ts ((p `plusPtr`)<$>ds)
 freeByT _ _      = pure ()
 
+x <::> y = x <!> ":" <+> y
+
 printExpr :: String -> Repl AlexPosn ()
 printExpr s = do
     st <- lg _lex
@@ -525,9 +527,9 @@ printExpr s = do
             eC <- eRepl eP
             case tyC i eC of
                 Left (RErr MR{}) -> liftIO $ case tyClosed i eC of
-                    Left e -> putDoc (pretty e <> hardline)
+                    Left e -> putDocLn (pretty e)
                     Right (e, c, _) ->
-                        let t=eAnn e in putDoc (pretty e <+> ":" <+> prettyC (t, c) <> hardline)
+                        let t=eAnn e in putDocLn (pretty e <::> prettyC (t, c))
                 Left err -> pErr err
                 Right (eLi, _, i') -> do
                     c <- lg mf; a <- lg _arch
@@ -550,12 +552,12 @@ printExpr s = do
                                 putStrLn (sB cb)
                                 freeAsm asm
                             where sB 1 = "#t"; sB 0 = "#f"
-                        A.Arrow{} -> liftIO $ putDoc (pretty eLi <+> ":" <+> pretty (eAnn eLi) <> hardline)
+                        A.Arrow{} -> liftIO $ putDocLn (pretty eLi <::> pretty (eAnn eLi))
                         t ->
                             liftIO $ do
                                 asm@(_, fp, _) <- efp eC
                                 p <- callFFI fp (retPtr undefined) []
-                                putDoc.(<>hardline) =<< peekInterpret t p
+                                putDocLn =<< peekInterpret t p
                                 freeByT t p *> freeAsm asm
     where bs = ubs s
 
@@ -587,4 +589,5 @@ eRepl :: E AlexPosn -> Repl AlexPosn (E AlexPosn)
 eRepl e = do { ees <- lg ee; pure $ foldLet ees e }
     where foldLet = thread . fmap (\b@(n,eϵ) eR -> if eR `mentions` n then Let (eAnn eϵ) b eR else eR) where thread = foldr (.) id
 
-pErr err = liftIO $ putDoc (pretty err <> hardline)
+putDocLn = putDoc.(<>hardline)
+pErr err = liftIO $ putDocLn (pretty err)
