@@ -782,6 +782,7 @@ rwArr t@TVar{}     = t
 rwArr (P ts)       = P (rwArr<$>ts)
 rwArr (Arr sh t)   | Nil <- rwSh sh = rwArr t
 rwArr (Arr ixes arr) | (is, Nil) <- unroll (rwSh ixes), Arr sh t <- rwArr arr = Arr (roll sh is) t
+rwArr (Arr sh t) | Arr shϵ t' <- rwArr t = Arr (rwSh$Cat sh shϵ) t'
 rwArr (Arr sh t)   = Arr (rwSh sh) (rwArr t)
 rwArr (Ρ n fs)     = Ρ n (rwArr<$>fs)
 
