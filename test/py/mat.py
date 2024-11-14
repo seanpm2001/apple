@@ -1,20 +1,26 @@
 import numpy as np;import apple
 
 from numpy.testing import assert_array_equal,assert_allclose
+
+np.random.seed(17)
+
 def vs(M,N):
     A=np.random.rand(M,N);x=np.random.rand(N)
     v=apple.jit(f"[(x::Arr ({M}×{N}) float)%:y]")
-    assert_allclose(A@x,v(A,x),rtol=1e-15,strict=True)
+    assert_allclose(v(A,x),A@x,rtol=1e-15,strict=True)
 
 vs(100,32)
 def test(M,N,K):
     bs=np.random.rand(M,N);cs=np.random.rand(N,K)
-    m=apple.jit(f"[(x::Arr ({M}×{N}) float)%.(y::Arr ({N}×{K}) float)]")
-    assert_allclose(bs@cs,m(bs,cs),rtol=1e-15,strict=True)
+    msz=apple.jit(f"[(x::Arr ({M}×{N}) float)%.(y::Arr ({N}×{K}) float)]")
+    assert_allclose(msz(bs,cs),bs@cs,rtol=1e-15,strict=True)
+
+    m=apple.jit(f"[(x::M float)%.y]")
+    assert_allclose(m(bs,cs),bs@cs,rtol=1e-15,strict=True)
 
     ds=np.random.rand(K,N)
     mT=apple.jit(f"[(x::Arr ({M}×{N}) float)%.|:(y::Arr ({K}×{N}) float)]")
-    assert_allclose(bs@ds.T,mT(bs,ds),rtol=1e-14,strict=True)
+    assert_allclose(mT(bs,ds),bs@ds.T,rtol=1e-14,strict=True)
 
 test(4,512,8);test(2,100,16)
 test(10000,784,128)
