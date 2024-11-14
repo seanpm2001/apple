@@ -18,6 +18,7 @@
 - [x] don't crash when stack-allocated tuples, arrays containing bools
 - [x] equality on arrays
   - [ ] equality on tup
+- [ ] non-inlined functions
 # Types
 - [ ] scan-with-seed accept differently typed seed
 - [ ] fold-with-seed generalize type
