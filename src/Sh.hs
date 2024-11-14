@@ -42,7 +42,7 @@ unroll _           = Nothing
 
 instance PS (Sh a) where
     ps _ (SVar n)    = pretty n
-    ps _ sh@Cons{}   | Just is <- unroll sh = tupledBy " × " (pretty <$> is)
+    ps _ sh@Cons{}   | Just is <- unroll sh = case is of {[i] -> pretty i; _ -> tupledBy " × " (pretty <$> is)}
     ps d (Cons i sh) = pg (d>6) (pretty i <+> "`Cons`" <+> pretty sh)
     ps _ Nil         = "Nil"
     ps d (Cat s s')  = group (parensp (d>5) (ps 6 s <+> "⧺" <+> ps 6 s'))
