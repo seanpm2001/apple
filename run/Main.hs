@@ -419,7 +419,7 @@ qc s = do
                                         else Just es <$ traverse_ freeP (catMaybes mps))
                             res <- loopϵ (100::Int)
                             case res of
-                                Nothing -> putDocLn ("Passed, 100.")
+                                Nothing -> putDocLn "Passed, 100."
                                 Just ex -> putDocLn ("Proposition failed!" <> hardline <> pretty ex)
                             freeAsm asm
 
@@ -465,7 +465,7 @@ benchE s = do
                                 asm@(_, fp, _) <- efp eC
                                 benchmark (nfIO (do{p<- callFFI fp (retPtr undefined) []; free p}))
                                 freeAsm asm
-                        A.Arrow{} -> liftIO $ putDocLn ("Cannot benchmark a function without arguments")
+                        A.Arrow{} -> liftIO $ putDocLn "Cannot benchmark a function without arguments"
     where bs = ubs s
 
 rSz A.B=1; rSz I=8; rSz A.F=8; rSz (P ts) = sum (rSz<$>ts); rSz Arr{}=8
