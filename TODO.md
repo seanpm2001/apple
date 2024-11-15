@@ -74,6 +74,8 @@ T16 = T13.dim[0]
 - [ ] Use `Word64` for sets of registers
 - [x] Modify state (+1) instead of using lazy list to supply e.g. temps
 # Bugs
+- [ ] `irange 0 0 0` crashes
+- [ ]  `}:? ((<0)#.irange 0 4 1)` segfaults
 - [ ] :cmm \xs. [⟨x->1,x->2⟩]'(xs::Vec n (float, float))
 - [ ] {. ⟨⟨1,1.0⟩,⟨2,3⟩⟩ type
 - [ ] segfault when `aso` is called pre-register allocation (arm)
@@ -171,6 +173,7 @@ o → o → o
 - [ ] https://www.2dcurves.com/derived/caustic.html
   - [ ] https://mathworld.wolfram.com/Hippopede.html
 - [ ] https://en.wikipedia.org/wiki/Mahalanobis_distance
+- [ ] https://cran.r-project.org/web/packages/indicspecies/vignettes/IndicatorSpeciesAnalysis.html
 - [ ] cellular automata
   - [ ] https://en.wikipedia.org/wiki/Rule_110
   - [ ] https://en.wikipedia.org/wiki/Rule_30
