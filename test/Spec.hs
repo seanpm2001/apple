@@ -2,8 +2,6 @@
 
 module Main (main) where
 
-import           Control.Exception     (throw)
-import qualified Data.ByteString       as BS
 import qualified Data.ByteString.Lazy  as BSL
 import           Data.Int              (Int64)
 import           Foreign.C.Types       (CUChar (..))
@@ -11,7 +9,6 @@ import           Foreign.Marshal.Alloc (allocaBytes)
 import           Foreign.Ptr           (FunPtr, Ptr)
 import           Foreign.Storable      (Storable (..))
 import           Hs.A
-import           Hs.FFI
 import           Math.Hypergeometric   (erf, hypergeometric, ncdf)
 import           Math.SpecialFunction  (agm, bessel1, chisqcdf, completeElliptic, gamma, tcdf)
 import           Numeric.NumberTheory  (isPrime, radical)
@@ -187,7 +184,7 @@ jitB = fpAaf "test/examples/b.🍎"
 tfpAi :: FilePath -> [[Int64]] -> IO [Int64]
 tfpAi fp aas = do
     f <- fpn =<< BSL.readFile fp
-    traverse (\as -> let a=v1 as in wA a $ \p -> pure $ ai f p) aas
+    traverse (\arr -> let a=v1 arr in wA a $ \p -> pure $ ai f p) aas
 
 fpAi :: FilePath -> [Int64] -> IO Int64
 fpAi fp bs = the<$>tfpAi fp [bs] where the [x]=x; the _ = error "the"
