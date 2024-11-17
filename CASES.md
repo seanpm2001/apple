@@ -1,5 +1,6 @@
 - [ ] fold-of-seed on scalar?
 - [ ] fold-of-array
+- [ ] zip of array
 - [ ] scan-of-array
 ```
  > \xs.\ys.[(+)`x y]Λ xs
@@ -19,6 +20,8 @@
 - [x] equality on arrays
   - [ ] equality on tup
 - [ ] non-inlined functions
+- [ ] various things only compile when rank is known...
+- [ ] more rank cases...
 # Types
 - [ ] scan-with-seed accept differently typed seed
 - [ ] fold-with-seed generalize type
