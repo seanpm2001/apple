@@ -1,6 +1,7 @@
 - [ ] fold-of-seed on scalar?
 - [ ] fold-of-array
 - [ ] zip of array
+- [ ] fold-of-zip on array
 - [ ] scan-of-array
 ```
  > \xs.\ys.[(+)`x y]Λ xs

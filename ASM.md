@@ -10,6 +10,13 @@
 - [ ] cneg is cool.
 - [ ] https://learn.microsoft.com/en-us/cpp/build/arm64-windows-abi-conventions?view=msvc-170#floating-pointsimd-registers
 - [ ] https://developer.arm.com/documentation/dui0801/a/Advanced-SIMD-and-Floating-point-Programming/Views-of-the-Advanced-SIMD-register-bank-in-AArch64-state
+- [ ] https://developer.arm.com/documentation/ddi0602/2024-09/Base-Instructions/CBLE--immediate---Compare-signed-less-than-or-equal-immediate-and-branch--an-alias-of-CB-cc---immediate--
+- [ ] Special instructions: Cbcc (cble, smin)
+- [ ]
+```
+sysctl hw.optional.arm.FEAT_FP16
+sysctl -a | rg '^hw\.optional'
+```
 # Min/max
 - [ ] http://web.archive.org/web/20130821015554/http://bob.allegronetwork.com/prog/tricks.html
   - [ ] quick absolute value
