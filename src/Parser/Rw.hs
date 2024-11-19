@@ -67,6 +67,7 @@ lassoc Mul    = True
 lassoc Plus   = True
 lassoc Minus  = True
 lassoc ConsE  = False
+lassoc Snoc   = False
 lassoc Map{}  = False
 lassoc CatE   = False
 lassoc Sr     = True
