@@ -4,6 +4,6 @@
   ; isPrime ← λn.¬((∨)/ₒ #f ([(n|x)=0]'(⍳ 2 (⌊(√(ℝn))) 1))); pf ⇐ (isPrime #.)
   ; pps ⟜ pf pns
   ; ?ni^2=n
-    ,.pf ((/.n)'(}:? pps))⧺pps
-    ,.pf (n⊲(/.n)'pps)⧺pps
+    ,.pf (pps⧺((/.n)'(}:? pps)))
+    ,.pf (pps⧺(n⊲(/.n)'pps))
   }
