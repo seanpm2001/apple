@@ -17,7 +17,6 @@ import           Control.DeepSeq   (NFData)
 import           Data.Bifunctor    (first)
 import           Data.Foldable     (toList)
 import qualified Data.IntMap       as IM
-import qualified Data.Sequence     as Seq
 import           GHC.Generics      (Generic)
 import           Nm
 import           Prettyprinter     (Doc, Pretty (..), align, braces, brackets, colon, comma, encloseSep, flatAlt, group, hsep, lbrace, lbracket, parens, pipe, punctuate, rbrace,
@@ -219,9 +218,9 @@ prettyTyped = pt where
     pt (Tup _ es)                                            = tupled (pt <$> es)
     pt e@(ALit t _)                                          = parens (pretty e <+> ":" <+> pretty t)
 
-spine :: E a -> Seq.Seq (E a)
-spine (EApp _ e0 e1) = spine e0 Seq.|> e1
-spine e              = Seq.singleton e
+spine :: E a -> [E a]
+spine (EApp _ e0 e1) = spine e0 ++ [e1]
+spine e              = [e]
 
 mPrec :: Builtin -> Maybe Int
 mPrec Plus   = Just 6
