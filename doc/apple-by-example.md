@@ -828,12 +828,12 @@ Compute the radical of an integer $n$, $\displaystyle \prod_{p|n} p$
 ```
 λn.
   { ni ⟜ ⌊(√(ℝn))
-  ; isPrime ← λn.¬((∨)/ₒ #f ([(n|x)=0]'(⍳ 2 (⌊(√(ℝn))) 1)))
-  ; pf ⇐ (isPrime #.)
-  ; pps ⟜  pf ((λk. ((n|k)=0)) #. (⍳ 2 ni 1))
+  ; pns ← (⍳ 2 ni 1)
+  ; isPrime ← λn.¬((∨)/ₒ #f ([(n|x)=0]'(⍳ 2 (⌊(√(ℝn))) 1))); pf ⇐ (isPrime #.)
+  ; pps ⟜  ((λk. ((n|k)=0)) #. pns)
   ; ?ni^2=n
-    ,.((*)/ₒ 1 (pf ((n/.)'(}:? pps))⧺pps))
-    ,.((*)/ₒ 1 (pf (n ⊲ ((n/.)'pps))⧺pps))
+    ,.((*)/ₒ 1 (pf (pps⧺(n/.)'(}:? pps))))
+    ,.((*)/ₒ 1 (pf (n ⊲ pps⧺((n/.)'pps))))
   }
 ```
 
