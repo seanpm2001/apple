@@ -219,8 +219,7 @@ prettyTyped = pt where
     pt e@(ALit t _)                                          = parens (pretty e <+> ":" <+> pretty t)
 
 spine :: E a -> [E a]
-spine (EApp _ e0 e1) = spine e0 ++ [e1]
-spine e              = [e]
+spine (EApp _ e0 e1) = spine e0 ++ [e1]; spine e = [e]
 
 mPrec :: Builtin -> Maybe Int
 mPrec Plus   = Just 6
