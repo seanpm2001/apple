@@ -38,14 +38,17 @@ instance Storable AB where
 
 instance (Storable a, Storable b) => Storable (P2 a b) where
     sizeOf _ = sizeOf(undefined::a)+sizeOf(undefined::b)
+    alignment _ = min (alignment (undefined::a)) (alignment (undefined::b))
     peek p = P2 <$> peek (castPtr p) <*> peek (p `plusPtr` sizeOf(undefined::a))
 
 instance (Storable a, Storable b, Storable c) => Storable (P3 a b c) where
     sizeOf _ = sizeOf (undefined::a)+sizeOf (undefined::b)+sizeOf (undefined::c)
+    alignment _ = minimum [alignment (undefined::a), alignment (undefined::b), alignment (undefined::c)]
     peek p = P3 <$> peek (castPtr p) <*> peek (p `plusPtr` sizeOf (undefined::a)) <*> peek (p `plusPtr` (sizeOf (undefined::a)+sizeOf (undefined::b)))
 
 instance (Storable a, Storable b, Storable c, Storable d) => Storable (P4 a b c d) where
     sizeOf _ = sizeOf(undefined::a)+sizeOf(undefined::b)+sizeOf(undefined::c)+sizeOf(undefined::d)
+    alignment _ = minimum [alignment (undefined::a), alignment (undefined::b), alignment (undefined::c), alignment (undefined::d)]
     peek p = P4 <$> peek (castPtr p) <*> peek (p `plusPtr` sizeOf(undefined::a)) <*> peek (p `plusPtr` (sizeOf(undefined::a)+sizeOf(undefined::b))) <*> peek (p `plusPtr` (sizeOf(undefined::a)+sizeOf(undefined::b)+sizeOf(undefined::c)))
 
 pE :: Pretty a => [Int64] -> [a] -> Doc ann
@@ -68,6 +71,7 @@ instance (Pretty a, Pretty b, Pretty c, Pretty d) => Pretty (P4 a b c d) where
 
 instance Storable a => Storable (Apple a) where
     sizeOf (AA rnk dims _) = 8+8*fromIntegral rnk+(sizeOf (undefined::a)*fromIntegral (product dims))
+    alignment _ = min 8 (alignment (undefined::a))
     poke p (AA rnk dims xs) = do
         poke (castPtr p) rnk
         zipWithM_ (\i o -> poke (p `plusPtr` (8+8*o)) i) dims [0..]
