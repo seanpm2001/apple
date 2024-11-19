@@ -38,7 +38,7 @@ pTest :: FunPtr (Int64 -> CUChar)
       -> TestTree
 pTest pfn rfn = testGroup "property tests"
     [ testProperty "isPrime" $ property $ \n -> n < 2 || isPrime n == cb (ib pfn (fromIntegral n))
-    -- , testProperty "radical" $ property $ \n -> n < 3 || radical n == fromIntegral (ii rfn (fromIntegral n))
+    , testProperty "radical" $ property $ \n -> n < 3 || radical n == fromIntegral (ii rfn (fromIntegral n))
     ]
   where
     cb 0=False; cb 1=True
