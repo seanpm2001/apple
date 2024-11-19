@@ -335,7 +335,7 @@ instance PS (E a) where
     ps _ (Id _ idm)                                               = pretty idm
     ps _ (Tup _ es)                                               = tupled (pretty <$> es)
     ps _ (ALit _ es)                                              = tupledArr (pretty <$> es)
-    ps d (Ann _ e t)                                              = parensp (d>1) (ps 2 e <+> "::" <+> ps 1 t)
+    ps d (Ann _ e t)                                              = parensp (d>0) (ps 1 e <+> "::" <+> ps 0 t)
     ps d (Cond _ p e₀ e₁)                                         = "?" <> pretty p <> ",." <+> ps d e₀ <+> ",." <+> ps d e₁
 
 instance Show (E a) where show=show.pretty
