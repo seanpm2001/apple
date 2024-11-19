@@ -31,7 +31,7 @@ data P3 a b c = P3 a b c; hs3 (P3 a b c) = (a,b,c)
 data P4 a b c d = P4 a b c d; hs4 (P4 a b c d) = (a,b,c,d)
 
 instance Storable AB where
-    sizeOf _ = 1
+    sizeOf _ = 1; alignment _=1
     peek p = (\case 1 -> T; 0 -> F) <$> peek (castPtr p :: Ptr Word8)
     poke p F = poke (castPtr p :: Ptr Word8) 0
     poke p T = poke (castPtr p :: Ptr Word8) 1
