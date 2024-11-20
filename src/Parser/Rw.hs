@@ -54,11 +54,13 @@ fi ConsE = 4; fi Snoc = 4
 fi Eq = 4; fi Neq = 4; fi Gt = 4
 fi Lt = 4; fi Lte = 4; fi Gte = 4
 fi CatE = 5; fi Sr=8; fi Sl=8
+fi IDiv = 7
 
 lassoc :: Builtin -> Bool
 lassoc IntExp = False
 lassoc Exp    = False
 lassoc Div    = True
+lassoc IDiv   = True
 lassoc Mod    = True
 lassoc Times  = True
 lassoc Max    = True
