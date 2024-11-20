@@ -8,7 +8,7 @@
 1:9: could not unify 'int' with 'Vec i c' in expression 'xs :: Arr (i × j) int'
 ```
 - [ ] rank for scalars...
-  - [ ] : 0.0 (size)
+  - [x] : 0.0 (size)
 - [ ] scan-of-tup
 - [ ] fold-tup
 - [x] snoc array, cons array
