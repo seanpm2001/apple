@@ -23,7 +23,7 @@ import System.Info (arch)
 #include <sys/mman.h>
 #include <apple.h>
 
-data CT; data FnTy
+data FnTy
 data JitCtx
 
 {# fun memcpy as ^ { castPtr `Ptr a', castPtr `Ptr a', coerce `CSize' } -> `Ptr a' castPtr #}
