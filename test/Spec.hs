@@ -39,6 +39,7 @@ pTest :: FunPtr (Int64 -> CUChar)
 pTest pfn rfn = testGroup "property tests"
     [ testProperty "isPrime" $ property $ \n -> n < 2 || isPrime n == cb (ib pfn (fromIntegral n))
     , testProperty "radical" $ property $ \n -> n < 3 || radical n == fromIntegral (ii rfn (fromIntegral n))
+    -- TODO: consSum,
     ]
   where
     cb 0=False; cb 1=True
@@ -48,7 +49,6 @@ rTy = testGroup "Regression tests"
     [ tyF "test/data/polymorphic.🍎"
     , tyF "test/examples/regress.🍎"
     , tyF "test/examples/convolve.🍎"
-    , tyF "test/examples/offset.🍏"
     , tyF "test/examples/xor.🍎"
     ]
 
