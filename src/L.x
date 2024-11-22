@@ -194,48 +194,48 @@ tokens :-
 
         "]"                      { mkSym RSqBracket `andBegin` 0 }
 
-        frange                   { mkBuiltin BuiltinFRange }
-        𝒻                        { mkBuiltin BuiltinFRange }
-        irange                   { mkBuiltin BuiltinIota }
-        ⍳                        { mkBuiltin BuiltinIota }
-        ⌊                        { mkBuiltin BuiltinFloor }
-        "|."                     { mkBuiltin BuiltinFloor }
-        ℯ                        { mkBuiltin BuiltinE }
-        "e:"                     { mkBuiltin BuiltinE }
-        itof                     { mkBuiltin BuiltinI }
-        ℝ                        { mkBuiltin BuiltinI }
-        𝓕                        { mkBuiltin BuiltinF }
-        𝓉                        { mkBuiltin BuiltinT }
-        "#t"                     { mkBuiltin BuiltinTrue }
-        "#f"                     { mkBuiltin BuiltinFalse }
-        √                        { mkBuiltin BuiltinSqrt }
-        𝜋                        { mkBuiltin BuiltinPi }
-        "gen."                   { mkBuiltin BuiltinGen }
-        "cyc."                   { mkBuiltin BuiltinCyc }
-        "re:"                    { mkBuiltin BuiltinRep }
-        "di."                    { mkBuiltin BuiltinD }
-        Λ                        { mkBuiltin BuiltinScan }
-        Λₒ                       { mkBuiltin BuiltinScanS }
-        "/\"                     { mkBuiltin BuiltinScan }
-        "/\o"                    { mkBuiltin BuiltinScanS }
-        "`Cons`"                 { mkBuiltin BuiltinCons }
-        Nil                      { mkBuiltin BuiltinNil }
-        "%."                     { mkBuiltin BuiltinMMul }
-        "%:"                     { mkBuiltin BuiltinVMul }
-        Arr                      { mkBuiltin BuiltinArr }
-        Vec                      { mkBuiltin BuiltinVec }
-        M                        { mkBuiltin BuiltinM }
-        float                    { mkBuiltin BuiltinFloat }
-        int                      { mkBuiltin BuiltinInt }
-        bool                     { mkBuiltin BuiltinBool }
-        𝔯                        { mkBuiltin BuiltinR }
-        "rand."                  { mkBuiltin BuiltinR }
-        "sin."                   { mkBuiltin BuiltinSin }
-        "cos."                   { mkBuiltin BuiltinCos }
-        "tan."                   { mkBuiltin BuiltinTan }
-        "odd."                   { mkBuiltin BuiltinOdd }
-        "even."                  { mkBuiltin BuiltinEven }
-        "abs."                   { mkBuiltin BuiltinAbs }
+        frange                   { mkB BuiltinFRange }
+        𝒻                        { mkB BuiltinFRange }
+        irange                   { mkB BuiltinIota }
+        ⍳                        { mkB BuiltinIota }
+        ⌊                        { mkB BuiltinFloor }
+        "|."                     { mkB BuiltinFloor }
+        ℯ                        { mkB BuiltinE }
+        "e:"                     { mkB BuiltinE }
+        itof                     { mkB BuiltinI }
+        ℝ                        { mkB BuiltinI }
+        𝓕                        { mkB BuiltinF }
+        𝓉                        { mkB BuiltinT }
+        "#t"                     { mkB BuiltinTrue }
+        "#f"                     { mkB BuiltinFalse }
+        √                        { mkB BuiltinSqrt }
+        𝜋                        { mkB BuiltinPi }
+        "gen."                   { mkB BuiltinGen }
+        "cyc."                   { mkB BuiltinCyc }
+        "re:"                    { mkB BuiltinRep }
+        "di."                    { mkB BuiltinD }
+        Λ                        { mkB BuiltinScan }
+        Λₒ                       { mkB BuiltinScanS }
+        "/\"                     { mkB BuiltinScan }
+        "/\o"                    { mkB BuiltinScanS }
+        "`Cons`"                 { mkB BuiltinCons }
+        Nil                      { mkB BuiltinNil }
+        "%."                     { mkB BuiltinMMul }
+        "%:"                     { mkB BuiltinVMul }
+        Arr                      { mkB BuiltinArr }
+        Vec                      { mkB BuiltinVec }
+        M                        { mkB BuiltinM }
+        float                    { mkB BuiltinFloat }
+        int                      { mkB BuiltinInt }
+        bool                     { mkB BuiltinBool }
+        𝔯                        { mkB BuiltinR }
+        "rand."                  { mkB BuiltinR }
+        "sin."                   { mkB BuiltinSin }
+        "cos."                   { mkB BuiltinCos }
+        "tan."                   { mkB BuiltinTan }
+        "odd."                   { mkB BuiltinOdd }
+        "even."                  { mkB BuiltinEven }
+        "abs."                   { mkB BuiltinAbs }
 
         _$digit+                 { tok (\p s -> alex $ TokInt p (negate $ read $ ASCII.unpack $ BSL.tail s)) }
         "0x"$hexit+              { tok (\p s -> alex $ TokInt p (hexP $ BSL.drop 2 s)) }
@@ -282,7 +282,7 @@ mkRes = constructor TokResVar
 
 mkSym = constructor TokSym
 
-mkBuiltin = constructor TokB
+mkB = constructor TokB
 
 mkFloat = constructor TokFloat
 
