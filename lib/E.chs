@@ -12,9 +12,9 @@ import Data.Word (Word8, Word64)
 import Dbg
 import Foreign.C.String (CString)
 import Foreign.C.Types (CInt (..), CSize (..), CChar)
-import Foreign.Marshal.Alloc (callocBytes, mallocBytes)
+import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr, castFunPtrToPtr, plusPtr, nullPtr)
-import Foreign.Storable (poke, pokeByteOff, sizeOf)
+import Foreign.Storable (poke, pokeByteOff)
 import Prettyprinter (Doc, Pretty)
 import Prettyprinter.Ext
 import System.Info (arch)
