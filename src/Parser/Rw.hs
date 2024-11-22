@@ -36,7 +36,6 @@ isBinOp Eye    = False
 isBinOp Flat   = False
 isBinOp AddDim = False
 isBinOp RevE   = False
-isBinOp C      = True
 isBinOp _      = True
 
 fi :: Builtin -> Int
@@ -66,15 +65,22 @@ lassoc Times  = True
 lassoc Max    = True
 lassoc Min    = True
 lassoc Mul    = True
+lassoc VMul   = False
 lassoc Plus   = True
 lassoc Minus  = True
+lassoc C      = True
 lassoc ConsE  = False
 lassoc Snoc   = False
-lassoc Map{}  = False
+lassoc A1     = True
+lassoc IOf    = False
+lassoc Cyc = True; lassoc Rot = True
+lassoc Map    = False
 lassoc CatE   = False
 lassoc Sr     = True
 lassoc Sl     = True
 lassoc Xor    = True
+lassoc Filt = False; lassoc Ices = False
+lassoc Fold = False; lassoc Succ = False
 lassoc Eq = False; lassoc Neq = False
 lassoc Gte = False; lassoc Lte = False
 lassoc Gt = False; lassoc Lt = False
