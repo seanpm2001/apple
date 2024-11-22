@@ -48,7 +48,7 @@ fi Plus = 6; fi Minus = 6
 fi Max = 6; fi Min = 6
 fi And = 3; fi Or = 2; fi Xor = 6
 fi Ices = 6; fi Filt=6
-fi Map{} = 5
+fi Map = 5
 fi ConsE = 4; fi Snoc = 4
 fi Eq = 4; fi Neq = 4; fi Gt = 4
 fi Lt = 4; fi Lte = 4; fi Gte = 4
