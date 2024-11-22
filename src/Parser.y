@@ -223,6 +223,7 @@ T :: { T AlexPosn }
   | parens(T) { $1 }
   | T arrow T { A.Arrow $1 $3 }
   | tupled(T) { P (reverse (snd $1)) }
+  | name { TVar $1 }
 
 R :: { (Int, Maybe [Int]) }
   : intLit compose lsqbracket sepBy(intLit,comma) rsqbracket { (fromInteger $ int $1, Just (reverse (fmap (fromInteger.int) $4))) }
