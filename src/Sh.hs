@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Sh (I (..), Sh (..)) where
+module Sh (I (..), Sh (..), (+:)) where
 
 import           Control.DeepSeq   (NFData)
 import           GHC.Generics      (Generic)
@@ -25,6 +25,10 @@ data I a = Ix { ia :: a, ii :: !Int }
          | StaPlus { ia :: a, ix0, ix1 :: I a }
          | StaMul { ia :: a, ix0, ix1 :: I a }
          deriving (Functor, Generic)
+
+infixl 6 +:
+
+i0+:i1 = StaPlus (ia i0) i0 i1
 
 infixr 8 `Cons`
 

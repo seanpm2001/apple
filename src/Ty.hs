@@ -530,7 +530,7 @@ tyB l R = do
 tyB _ Iter = do{a <- ftv "a"; let s = Arrow a a in pure (s ~> I ~> s, mempty)}
 tyB _ ConsE = do
     a <- ftv "a"; i <- fti "i"
-    pure (a ~> vV i a ~> vV (StaPlus () i (Ix()1)) a, mempty)
+    pure (a ~> vV i a ~> vV (i+:Ix()1) a, mempty)
 tyB l Snoc = tyB l ConsE
 tyB _ A1 = do
     a <- ftv "a"; i <- fti "i"; sh <- fsh "sh"
@@ -546,19 +546,19 @@ tyB _ LastM = do
     pure (Arr (i `Cons` sh) a ~> Arr sh a, mempty)
 tyB _ Last = do
     a <- ftv "a"; i <- fti "i"; sh <- fsh "sh"
-    pure (Arr (StaPlus () i (Ix()1) `Cons` sh) a ~> Arr sh a, mempty)
+    pure (Arr ((i+:Ix()1) `Cons` sh) a ~> Arr sh a, mempty)
 tyB _ Head = do
     a <- ftv "a"; i <- fti "i"; sh <- fsh "sh"
-    pure (Arr (StaPlus () i (Ix()1) `Cons` sh) a ~> Arr sh a, mempty)
+    pure (Arr ((i+:Ix()1) `Cons` sh) a ~> Arr sh a, mempty)
 tyB _ Init = do
     a <- ftv "a"; i <- fti "i"; sh <- fsh "sh"
-    pure (Arr (StaPlus () i (Ix()1) `Cons` sh) a ~> Arr (i `Cons` sh) a, mempty)
+    pure (Arr ((i+:Ix()1) `Cons` sh) a ~> Arr (i `Cons` sh) a, mempty)
 tyB _ InitM = do
     a <- ftv "a"; i <- fti "i"; n <- ftie; sh <- fsh "sh"
     pure (Arr (i `Cons` sh) a ~> Arr (n `Cons` sh) a, mempty)
 tyB _ Tail = do
     a <- ftv "a"; i <- fti "i"; sh <- fsh "sh"
-    pure (Arr (StaPlus () i (Ix()1) `Cons` sh) a ~> Arr (i `Cons` sh) a, mempty)
+    pure (Arr ((i+:Ix()1) `Cons` sh) a ~> Arr (i `Cons` sh) a, mempty)
 tyB _ TailM = do
     a <- ftv "a"; i <- fti "i"; n <- ftie; sh <- fsh "sh"
     pure (Arr (i `Cons` sh) a ~> Arr (n `Cons` sh) a, mempty)
@@ -620,17 +620,16 @@ tyB _ AddDim = do
 tyB _ CatE = do
     i <- fti "i"; j <- fti "j"
     n <- ftv "a"
-    pure (vV i n ~> vV j n ~> vV (StaPlus () i j) n, mempty)
+    pure (vV i n ~> vV j n ~> vV (i+:j) n, mempty)
 tyB _ Scan = do
     a <- ftv "a"; i <- fti "i"; sh <- fsh "sh"
-    let i1 = StaPlus () i (Ix()1)
-        arrTy = Arr (Cons i1 sh) a
+    let arrTy = Arr ((i+:Ix() 1) `Cons` sh) a
     pure ((a ~> a ~> a) ~> arrTy ~> arrTy, mempty)
 tyB _ ScanS = do
     a <- ftv "a"; b <- ftv "b"
     i <- fti "i"; sh <- fsh "sh"
     let opTy = b ~> a ~> b
-        arrTy = Arr (Cons i sh); rarrTy = Arr (Cons (StaPlus () i (Ix()1)) sh)
+        arrTy = Arr (Cons i sh); rarrTy = Arr ((i+:Ix()1) `Cons` sh)
         -- FIXME: 1+1?
     pure (opTy ~> b ~> arrTy a ~> rarrTy b, mempty)
 tyB l (DI n) = tyB l (Conv [n])
@@ -640,13 +639,13 @@ tyB _ (Conv ns) = do
     a <- ftv "a"; b <- ftv "b"
     let nx = Ix () <$> ns
         opTy = Arr (foldr Cons sh nx) a ~> b
-        t = Arrow (Arr (foldr Cons sh (zipWith (StaPlus ()) is nx)) a) (Arr (foldr Cons Nil is) b)
+        t = Arrow (Arr (foldr Cons sh (zipWith (+:) is nx)) a) (Arr (foldr Cons Nil is) b)
     pure (opTy ~> t, mempty)
 tyB _ Succ = do
     i <- fti "i"; sh <- fsh "sh"
     a <- ftv "a"; b <- ftv "b"
     let opTy = a ~> (a ~> b)
-    pure (opTy ~> (Arr (StaPlus () i (Ix () 1) `Cons` sh) a ~> Arr (i `Cons` sh) b), mempty)
+    pure (opTy ~> (Arr ((i+:Ix () 1) `Cons` sh) a ~> Arr (i `Cons` sh) b), mempty)
 tyB _ (TAt i) = do
     ρ <- freshN "ρ" ()
     a <- ftv "a"
@@ -680,7 +679,7 @@ tyB l (Rank as) = do
     pure (fTy ~> rTy, mconcat s)
 tyB _ Fold = do
     i <- fti "i"; sh <- fsh "sh"; a <- ftv "a"
-    let sh1 = StaPlus () i (Ix()1) `Cons` sh
+    let sh1 = (i+:Ix()1) `Cons` sh
     pure ((a ~> a ~> a) ~> Arr sh1 a ~> Arr sh a, mempty)
 tyB _ FoldS = do
     i <- fti "i"; sh <- fsh "sh"; a <- ftv "a"
