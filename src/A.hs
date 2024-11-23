@@ -82,7 +82,7 @@ prettyFields = mconcat . punctuate "," . fmap g where g (i, t) = pretty i <> ":"
 
 prettyRank :: (Int, Maybe [Int]) -> Doc ann
 prettyRank (i, Nothing) = pretty i
-prettyRank (i, Just as) = pretty i <+> "∘" <+> encloseSep lbracket rbracket comma (pretty<$>as)
+prettyRank (i, Just as) = pretty i <> "∘" <> encloseSep lbracket rbracket comma (pretty<$>as)
 
 instance Pretty Builtin where
     pretty Plus      = "+"
