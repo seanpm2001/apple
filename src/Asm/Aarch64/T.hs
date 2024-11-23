@@ -513,6 +513,7 @@ eval (IR.IRFloor e) t = do
     (plE,r) <- plF e
     pure $ plE [Fcvtms () (absReg t) r]
 eval (IR.EAt (IR.AP tB (Just (IR.ConstI i)) _)) tD | Just p <- mp i = pure [Ldr () (absReg tD) (RP (absReg tB) p)]
+eval (IR.BAt (IR.AP tB Nothing _)) tD = pure [LdrB () (absReg tD) (R (absReg tB))]
 eval (IR.BAt (IR.AP tB (Just (IR.ConstI i)) _)) tD | Just u <- mu16 i = pure [LdrB () (absReg tD) (RP (absReg tB) u)]
 eval (IR.EAt (IR.AP rB (Just (IR.IB Op.IAsl eI (IR.ConstI 3))) _)) t = do
     (plE,i) <- plI eI
