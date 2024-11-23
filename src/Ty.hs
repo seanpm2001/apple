@@ -305,6 +305,9 @@ mguI _ _ i0@(IEVar l _) i1@StaPlus{} = throwError $ UI l i0 i1 -- TODO: focus?
 mguI _ _ i0@(StaPlus l _ _) i1@IEVar{} = throwError $ UI l i0 i1
 mguI _ _ i0 i1 = error (show (i0,i1))
 
+splitFromLeft :: Int -> [a] -> ([a], [a])
+splitFromLeft n xs | nl <- length xs = splitAt (nl-n) xs
+
 mgShPrep :: Focus -> a -> Subst a -> Sh a -> Sh a -> UM a (Sh a, Subst a)
 mgShPrep f l s = mgSh f l s `on` shSubst s.rwSh
 
@@ -354,6 +357,15 @@ mgSh f l inp sh0@Π{} sh1@Rev{} = do
     (_, s') <- mgSh f l inp sh sh0
     (_, s'') <- mgShPrep f l s' sh sh1
     pure (sh, s'')
+mgSh f l s sh0@Cons{} sh1@(Cat shh shϵ) | (is, Nil) <- unroll sh0, (isϵ, Nil) <- unroll shϵ, n <- length is, nϵ <- length isϵ =
+    if n<nϵ
+      then throwError $ USh l sh0 sh1
+      else let (ish, isϵ') = splitFromLeft (n-nϵ) is
+           in do
+              (_, s0) <- mgSh f l s shh (roll Nil ish)
+              (_, s1) <- mgShPrep f l s0 (roll Nil isϵ') shϵ
+              pure (sh0, s1)
+mgSh f l s sh1@Cat{} sh0@Cons{} = mgSh f l s sh1 sh0
 mgSh _ l _ sh0@Cons{} sh1 = throwError $ UShD l sh0 sh1
 mgSh _ l _ sh0 sh1@Cons{} = throwError $ UShD l sh0 sh1
 mgSh _ l _ sh0@Π{} sh1@Cat{} = throwError $ UShD l sh0 sh1
