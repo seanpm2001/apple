@@ -186,8 +186,11 @@ data Builtin = Plus | Minus | Times | Div | IntExp | Exp | Log
              deriving (Generic)
              -- TODO: (feuilleter, stagger, ...) reshape...?
 
+(<::>) :: Doc ann -> T b -> Doc ann
+x<::>y = parens (x <+> ":" <+> pretty y)
+
 ptn :: Nm (T a) -> Doc ann
-ptn n@(Nm _ _ t) = parens (pretty n <+> ":" <+> pretty t)
+ptn n@(Nm _ _ t) = pretty n<::>t
 
 prettyC :: (T (), [(Nm a, C)]) -> Doc ann
 prettyC (t, []) = pretty t
@@ -197,14 +200,14 @@ prettyC (t, cs) = tupled (pc<$>cs) <+> ":=>" <+> pretty t
 -- TODO: constraints
 prettyTyped :: E (T a) -> Doc ann
 prettyTyped = pt where
-    pt (Var t n)                                             = parens (pretty n <+> ":" <+> pretty t)
-    pt (Builtin t b)                                         = parens (pretty b <+> ":" <+> pretty t)
-    pt (ILit t n)                                            = parens (pretty n <+> ":" <+> pretty t)
-    pt (FLit t x)                                            = parens (pretty x <+> ":" <+> pretty t)
-    pt (BLit t True)                                         = parens ("#t" <+> colon <+> pretty t)
-    pt (BLit t False)                                        = parens ("#f" <+> colon <+> pretty t)
+    pt (Var t n)                                             = pretty n<::>t
+    pt (Builtin t b)                                         = pretty b<::>t
+    pt (ILit t n)                                            = pretty n<::>t
+    pt (FLit t x)                                            = pretty x<::>t
+    pt (BLit t True)                                         = "#t"<::>t
+    pt (BLit t False)                                        = "#f"<::>t
     pt (Cond t p e0 e1)                                      = parens ("?" <+> pt p <+> ",." <+> pt e0 <+> pt e1) <+> colon <+> pretty t
-    pt (Lam _ n@(Nm _ _ xt) e)                               = "λ" <> parens (pretty n <+> ":" <+> pretty xt) <> "." <!> pt e
+    pt (Lam _ n@(Nm _ _ xt) e)                               = "λ" <> pretty n<::>xt <> "." <!> pt e
     pt (EApp _ (EApp _ (EApp _ (Builtin _ FoldS) e0) e1) e2) = parens (pt e0 <> "/ₒ" <+> pt e1 <+> pt e2)
     pt (EApp _ (EApp _ (EApp _ (Builtin _ FoldA) e0) e1) e2) = parens (pt e0 <> "/*" <+> pt e1 <+> pt e2)
     pt (EApp _ (EApp _ (EApp _ (Builtin _ Foldl) e0) e1) e2) = parens (pt e0 <> "/l" <+> pt e1 <+> pt e2)
@@ -216,7 +219,7 @@ prettyTyped = pt where
     pt (LLet t (n, e) e')                                    = parens (braces (ptn n <+> "⟜" <+> pt e <> ";" <+> pt e') <+> pretty t)
     pt (Def t (n, e) e')                                     = parens (braces (ptn n <+> "⇐" <+> pt e <> ";" <+> pt e') <+> pretty t)
     pt (Tup _ es)                                            = tupled (pt <$> es)
-    pt e@(ALit t _)                                          = parens (pretty e <+> ":" <+> pretty t)
+    pt e@(ALit t _)                                          = pretty e<::>t
 
 spine :: E a -> [E a]
 spine (EApp _ e0 e1) = spine e0 ++ [e1]; spine e = [e]
