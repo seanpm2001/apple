@@ -367,13 +367,13 @@ vslop sz n = do
     szSlop=16+fromIntegral n*sz
 
 plSlop :: Int64 -> Int64 -> [CE] -> CM (Temp, Temp, [CS ()], CS ())
-plSlop sz slopRnk complDims = do
+plSlop sz slopRnk dims = do
     slopP <- nI; slopSz <- nI; slopE <- nI
     pure (slopP, slopSz,
-            PlProd () slopSz complDims
+            PlProd () slopSz dims
                 :slopE=:(Tmp slopSz*ConstI sz+ConstI (8*(slopRnk+1)))
                 :sa sz slopP (Tmp slopE):Wr () (ARnk slopP Nothing) (ConstI slopRnk)
-                :diml (slopP, Nothing) complDims,
+                :diml (slopP, Nothing) dims,
          pop sz (Tmp slopE))
 
 codT :: T () -> T ()
