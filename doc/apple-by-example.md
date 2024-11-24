@@ -204,9 +204,16 @@ The outer product `⊗` creates a table by applying some function.
 , [(4.0*0.0), (4.0*1.0), (4.0*2.0), (4.0*3.0), (4.0*4.0)] ]
 ```
 
-## Flatten
+## Reshape
 
-`♭` flattens an array to a vector.
+`♭` flattens an array to a vector, `♮` adds a dimension.
+
+```
+ > :ty λA. ♭ (A::Arr (28×28×1) a)
+Arr (28 × 28 × 1) a → Vec 784 a
+ > ♮ (irange 0 9 1)
+Arr (1×10) [ [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] ]
+```
 
 ## Successive Application
 
