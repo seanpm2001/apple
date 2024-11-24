@@ -50,7 +50,7 @@ data T a = Arr (Sh a) (T a)
          | TVar (Nm a) -- | Kind \(*\)
          | Arrow (T a) (T a)
          | P [T a]
-         | Ρ (TyNm a) (IM.IntMap (T a))
+         | Ρ (Nm a) (IM.IntMap (T a))
          deriving (Functor, Generic)
 
 instance Show (T a) where show=show.pretty

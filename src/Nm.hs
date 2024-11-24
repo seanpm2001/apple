@@ -1,13 +1,9 @@
-module Nm ( Nm (..)
-          , TyNm
-          ) where
+module Nm ( Nm (..) ) where
 
 import           Control.DeepSeq (NFData (..))
 import qualified Data.Text       as T
 import           Prettyprinter   (Pretty (..))
 import           U
-
-type TyNm a = Nm a
 
 data Nm a = Nm { name   :: T.Text
                , unique :: !U
