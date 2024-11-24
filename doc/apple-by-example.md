@@ -682,7 +682,7 @@ the sample covariance matrix thusly:
 λxs.
 {
   𝜇 ← [⸎n⟜ ℝ(:x); (+)/x%n];
-  rs ⟜ 𝜇'xs;
+  rs ← 𝜇'xs;
   nd ⟜ [(-x)'y]`{0,1∘[2]} rs xs;
   N ⟜ ℝ(:({.xs))-1;
   nd [(+)/(*)`x y%N]⊗ nd
