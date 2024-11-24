@@ -204,6 +204,10 @@ The outer product `⊗` creates a table by applying some function.
 , [(4.0*0.0), (4.0*1.0), (4.0*2.0), (4.0*3.0), (4.0*4.0)] ]
 ```
 
+## Flatten
+
+`♭` flattens an array to a vector.
+
 ## Successive Application
 
 ```
@@ -668,6 +672,24 @@ Note the array style: `⊖`, ` (zip), and fold are enough to eschew pointful def
 ```
 λp.λx. (+)/ ((*)`(~p) (gen. 1 (*x) (𝓉p)))
 ```
+
+## Covariance Matrix
+
+Given a $K \times N$ matrix of $N$ obervations on $K$ variables, we can compute
+the sample covariance matrix thusly:
+
+```
+λxs.
+{
+  𝜇 ← [⸎n⟜ ℝ(:x); (+)/x%n];
+  rs ⟜ 𝜇'xs;
+  nd ⟜ [(-x)'y]`{0,1∘[2]} rs xs;
+  N ⟜ ℝ(:({.xs))-1;
+  nd [(+)/(*)`x y%N]⊗ nd
+}
+```
+
+The array style gives a new take on the problem.
 
 ## Array
 
