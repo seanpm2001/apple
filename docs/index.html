@@ -264,6 +264,7 @@ Literals</a></li>
 <li><a href="#reverse" id="toc-reverse">Reverse</a></li>
 <li><a href="#outer-product" id="toc-outer-product">Outer
 Product</a></li>
+<li><a href="#flatten" id="toc-flatten">Flatten</a></li>
 <li><a href="#successive-application"
 id="toc-successive-application">Successive Application</a></li>
 <li><a href="#rotate" id="toc-rotate">Rotate</a></li>
@@ -271,7 +272,7 @@ id="toc-successive-application">Successive Application</a></li>
 <li><a href="#repeat" id="toc-repeat">Repeat</a></li>
 <li><a href="#transpose" id="toc-transpose">Transpose</a></li>
 <li><a href="#unfold" id="toc-unfold">Unfold</a></li>
-<li><a href="#dyadic-infix" id="toc-dyadic-infix">Dyadic Infix</a></li>
+<li><a href="#infix" id="toc-infix">Infix</a></li>
 <li><a href="#bind" id="toc-bind">Bind</a>
 <ul>
 <li><a href="#polymorphic-bind" id="toc-polymorphic-bind">Polymorphic
@@ -299,6 +300,7 @@ Matrix</a></li>
 <li><a href="#identifiers" id="toc-identifiers">Identifiers</a></li>
 <li><a href="#vulgar-fractions" id="toc-vulgar-fractions">Vulgar
 Fractions</a></li>
+<li><a href="#time" id="toc-time">Time</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#examples" id="toc-examples">Examples</a>
@@ -321,6 +323,8 @@ Theorem</a></li>
 <ul>
 <li><a href="#evaluation" id="toc-evaluation">Evaluation</a></li>
 </ul></li>
+<li><a href="#covariance-matrix" id="toc-covariance-matrix">Covariance
+Matrix</a></li>
 <li><a href="#array" id="toc-array">Array</a>
 <ul>
 <li><a href="#matrix-vector-multiplication"
@@ -367,7 +371,8 @@ id="toc-cdf-for-f-distribution">CDF for F-distribution</a></li>
 </nav>
 <h1 id="introduction">Introduction</h1>
 <p>Apple is an experimental compiler with a working though
-not-perfectly-designed typed frontend.</p>
+not-perfectly-designed typed frontend. The language is missing the
+ability to sort an array but otherwise capable.</p>
 <h2 id="installation">Installation</h2>
 <p>The REPL and typechecker are available on the <a
 href="https://github.com/vmchale/apple/releases">release page</a>.</p>
@@ -378,7 +383,7 @@ href="https://github.com/vmchale/apple/releases">release page</a>.</p>
 ⋉             max                      ⋊             min
 ⍳             integer range            ⌊             floor
 ℯ             exp                      ⨳ {m,n}       convolve
-\~            successive application   \`n           dyadic infix
+\~            successive application   \`n           infix
 _.            log                      &#39;n            map
 `             zip                      `{i,j∘[k,l]}  rank
 𝒻             range (real)             𝜋             pi
@@ -488,6 +493,8 @@ function.</p>
 , [(2.0*0.0), (2.0*1.0), (2.0*2.0), (2.0*3.0), (2.0*4.0)]
 , [(3.0*0.0), (3.0*1.0), (3.0*2.0), (3.0*3.0), (3.0*4.0)]
 , [(4.0*0.0), (4.0*1.0), (4.0*2.0), (4.0*3.0), (4.0*4.0)] ]</code></pre>
+<h2 id="flatten">Flatten</h2>
+<p><code>♭</code> flattens an array to a vector.</p>
 <h2 id="successive-application">Successive Application</h2>
 <pre><code> &gt; :ty (\~)
 (a → a → b) → Arr (i + 1 `Cons` sh) a → Arr (i `Cons` sh) b</code></pre>
@@ -529,7 +536,7 @@ Arr (3×2) [ [1.0, 0.0]
 <h2 id="unfold">Unfold</h2>
 <pre><code> &gt; gen. (1::int) (*2) 10
 Vec 10 [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]</code></pre>
-<h2 id="dyadic-infix">Dyadic Infix</h2>
+<h2 id="infix">Infix</h2>
 <p>Moving average:</p>
 <pre><code> &gt; [((+)/x)%ℝ(:x)]\` 7 (frange 0 9 10)
 [3.0, 4.0, 5.0, 6.0]</code></pre>
@@ -571,9 +578,9 @@ contrast map <code>'</code> cuts across the leading dimension.</p>
 <pre><code> &gt; ⟨⟨0,1,2⟩,⟨3,4,5::int⟩⟩
 Arr (2×3) [ [0, 1, 2]
           , [3, 4, 5] ]
- &gt; {sum←[(+)/x]; sum`{1} ⟨⟨0,1,2⟩,⟨3,4,5::int⟩⟩}
+ &gt; ((+)/)`{1} ⟨⟨0,1,2⟩,⟨3,4,5::int⟩⟩
 Vec 3 [3, 5, 7]
- &gt; {sum←[(+)/x]; sum`{1∘[2]} ⟨⟨0,1,2⟩,⟨3,4,5::int⟩⟩}
+ &gt; ((+)/)`{1∘[2]} ⟨⟨0,1,2⟩,⟨3,4,5::int⟩⟩
 Vec 2 [3, 12]</code></pre>
 <p>This may be confusing; Apple’s rank feature was poorly designed.</p>
 <p>Take 0-cells (scalars) from the first array and 1-cells from the
@@ -605,8 +612,8 @@ tuple, viz.</p>
  &gt; (1.0,#t,4::int)-&gt;3
 4</code></pre>
 <h2 id="convolve">Convolve</h2>
-<p>Convolve <code>(⨳ {m,n})</code> is like <a
-href="#dyadic-infix">dyadic infix</a> for higher-rank windows.</p>
+<p>Convolve <code>(⨳ {m,n})</code> is like <a href="#infix">infix</a>
+for higher-rank windows.</p>
 <pre><code> &gt; [(⋉)/x] ⨳ {3} ⟨_1,0,4,_2,3,3,1,1,0,_5.0⟩
 Vec 8 [4.0, 4.0, 4.0, 3.0, 3.0, 3.0, 1.0, 1.0]</code></pre>
 <pre><code> &gt; [(⋉)/x] \`3 ⟨_1,0,4,_2,3,3,1,1,0,_5.0⟩
@@ -671,6 +678,10 @@ valid identifiers but <code>𝜉s</code> is not.</p>
 <p>One can use <code>⅟</code> for the reciprocal, viz.</p>
 <pre><code> &gt; [⅟(1+ℯ(_x))]
 λx. 1.0 % (1 + 2.718281828459045 ** _ x) : float → float</code></pre>
+<h3 id="time">Time</h3>
+<p>In the REPL, one can use <code>⏱</code> in place of
+<code>:bench</code>, i.e.</p>
+<pre><code>⏱ [((+)/x)%ℝ(:x)]\`7 (𝒻 0 999 1000)</code></pre>
 <h1 id="examples">Examples</h1>
 <h2 id="linear-regression">Linear Regression</h2>
 <pre><code>λxs.λys.
@@ -718,38 +729,38 @@ Mean</h2>
 }</code></pre>
 <p>This is equivalent to the <a
 href="https://towardsdatascience.com/implementing-the-xor-gate-using-backpropagation-in-neural-networks-c1f255b4f20d">Python</a>:</p>
-<div class="sourceCode" id="cb62"><pre
-class="sourceCode python"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sigmoid (x):</span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">/</span>(<span class="dv">1</span> <span class="op">+</span> np.exp(<span class="op">-</span>x))</span>
-<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sigmoid_derivative(x):</span>
-<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> x)</span>
-<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>inputs <span class="op">=</span> np.array([[<span class="dv">0</span>,<span class="dv">0</span>],[<span class="dv">0</span>,<span class="dv">1</span>],[<span class="dv">1</span>,<span class="dv">0</span>],[<span class="dv">1</span>,<span class="dv">1</span>]])</span>
-<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>expected_output <span class="op">=</span> np.array([[<span class="dv">0</span>],[<span class="dv">1</span>],[<span class="dv">1</span>],[<span class="dv">0</span>]])</span>
-<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a>hidden_layer_activation <span class="op">=</span> np.dot(inputs,hidden_weights)</span>
-<span id="cb62-13"><a href="#cb62-13" aria-hidden="true" tabindex="-1"></a>hidden_layer_activation <span class="op">+=</span> hidden_bias</span>
-<span id="cb62-14"><a href="#cb62-14" aria-hidden="true" tabindex="-1"></a>hidden_layer_output <span class="op">=</span> sigmoid(hidden_layer_activation)</span>
-<span id="cb62-15"><a href="#cb62-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-16"><a href="#cb62-16" aria-hidden="true" tabindex="-1"></a>output_layer_activation <span class="op">=</span> np.dot(hidden_layer_output,output_weights)</span>
-<span id="cb62-17"><a href="#cb62-17" aria-hidden="true" tabindex="-1"></a>output_layer_activation <span class="op">+=</span> output_bias</span>
-<span id="cb62-18"><a href="#cb62-18" aria-hidden="true" tabindex="-1"></a>predicted_output <span class="op">=</span> sigmoid(output_layer_activation)</span>
-<span id="cb62-19"><a href="#cb62-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-20"><a href="#cb62-20" aria-hidden="true" tabindex="-1"></a><span class="co">#Backpropagation</span></span>
-<span id="cb62-21"><a href="#cb62-21" aria-hidden="true" tabindex="-1"></a>error <span class="op">=</span> expected_output <span class="op">-</span> predicted_output</span>
-<span id="cb62-22"><a href="#cb62-22" aria-hidden="true" tabindex="-1"></a>d_predicted_output <span class="op">=</span> error <span class="op">*</span> sigmoid_derivative(predicted_output)</span>
-<span id="cb62-23"><a href="#cb62-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-24"><a href="#cb62-24" aria-hidden="true" tabindex="-1"></a>error_hidden_layer <span class="op">=</span> d_predicted_output.dot(output_weights.T)</span>
-<span id="cb62-25"><a href="#cb62-25" aria-hidden="true" tabindex="-1"></a>d_hidden_layer <span class="op">=</span> error_hidden_layer <span class="op">*</span> sigmoid_derivative(hidden_layer_output)</span>
-<span id="cb62-26"><a href="#cb62-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb62-27"><a href="#cb62-27" aria-hidden="true" tabindex="-1"></a><span class="co">#Updating Weights and Biases</span></span>
-<span id="cb62-28"><a href="#cb62-28" aria-hidden="true" tabindex="-1"></a>output_weights <span class="op">+=</span> hidden_layer_output.T.dot(d_predicted_output)</span>
-<span id="cb62-29"><a href="#cb62-29" aria-hidden="true" tabindex="-1"></a>output_bias <span class="op">+=</span> np.<span class="bu">sum</span>(d_predicted_output,axis<span class="op">=</span><span class="dv">0</span>,keepdims<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb62-30"><a href="#cb62-30" aria-hidden="true" tabindex="-1"></a>hidden_weights <span class="op">+=</span> inputs.T.dot(d_hidden_layer)</span>
-<span id="cb62-31"><a href="#cb62-31" aria-hidden="true" tabindex="-1"></a>hidden_bias <span class="op">+=</span> np.<span class="bu">sum</span>(d_hidden_layer,axis<span class="op">=</span><span class="dv">0</span>,keepdims<span class="op">=</span><span class="va">True</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre
+class="sourceCode python"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sigmoid (x):</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span><span class="op">/</span>(<span class="dv">1</span> <span class="op">+</span> np.exp(<span class="op">-</span>x))</span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sigmoid_derivative(x):</span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> x)</span>
+<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a>inputs <span class="op">=</span> np.array([[<span class="dv">0</span>,<span class="dv">0</span>],[<span class="dv">0</span>,<span class="dv">1</span>],[<span class="dv">1</span>,<span class="dv">0</span>],[<span class="dv">1</span>,<span class="dv">1</span>]])</span>
+<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>expected_output <span class="op">=</span> np.array([[<span class="dv">0</span>],[<span class="dv">1</span>],[<span class="dv">1</span>],[<span class="dv">0</span>]])</span>
+<span id="cb63-11"><a href="#cb63-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a>hidden_layer_activation <span class="op">=</span> np.dot(inputs,hidden_weights)</span>
+<span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a>hidden_layer_activation <span class="op">+=</span> hidden_bias</span>
+<span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a>hidden_layer_output <span class="op">=</span> sigmoid(hidden_layer_activation)</span>
+<span id="cb63-15"><a href="#cb63-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-16"><a href="#cb63-16" aria-hidden="true" tabindex="-1"></a>output_layer_activation <span class="op">=</span> np.dot(hidden_layer_output,output_weights)</span>
+<span id="cb63-17"><a href="#cb63-17" aria-hidden="true" tabindex="-1"></a>output_layer_activation <span class="op">+=</span> output_bias</span>
+<span id="cb63-18"><a href="#cb63-18" aria-hidden="true" tabindex="-1"></a>predicted_output <span class="op">=</span> sigmoid(output_layer_activation)</span>
+<span id="cb63-19"><a href="#cb63-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-20"><a href="#cb63-20" aria-hidden="true" tabindex="-1"></a><span class="co">#Backpropagation</span></span>
+<span id="cb63-21"><a href="#cb63-21" aria-hidden="true" tabindex="-1"></a>error <span class="op">=</span> expected_output <span class="op">-</span> predicted_output</span>
+<span id="cb63-22"><a href="#cb63-22" aria-hidden="true" tabindex="-1"></a>d_predicted_output <span class="op">=</span> error <span class="op">*</span> sigmoid_derivative(predicted_output)</span>
+<span id="cb63-23"><a href="#cb63-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-24"><a href="#cb63-24" aria-hidden="true" tabindex="-1"></a>error_hidden_layer <span class="op">=</span> d_predicted_output.dot(output_weights.T)</span>
+<span id="cb63-25"><a href="#cb63-25" aria-hidden="true" tabindex="-1"></a>d_hidden_layer <span class="op">=</span> error_hidden_layer <span class="op">*</span> sigmoid_derivative(hidden_layer_output)</span>
+<span id="cb63-26"><a href="#cb63-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-27"><a href="#cb63-27" aria-hidden="true" tabindex="-1"></a><span class="co">#Updating Weights and Biases</span></span>
+<span id="cb63-28"><a href="#cb63-28" aria-hidden="true" tabindex="-1"></a>output_weights <span class="op">+=</span> hidden_layer_output.T.dot(d_predicted_output)</span>
+<span id="cb63-29"><a href="#cb63-29" aria-hidden="true" tabindex="-1"></a>output_bias <span class="op">+=</span> np.<span class="bu">sum</span>(d_predicted_output,axis<span class="op">=</span><span class="dv">0</span>,keepdims<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb63-30"><a href="#cb63-30" aria-hidden="true" tabindex="-1"></a>hidden_weights <span class="op">+=</span> inputs.T.dot(d_hidden_layer)</span>
+<span id="cb63-31"><a href="#cb63-31" aria-hidden="true" tabindex="-1"></a>hidden_bias <span class="op">+=</span> np.<span class="bu">sum</span>(d_hidden_layer,axis<span class="op">=</span><span class="dv">0</span>,keepdims<span class="op">=</span><span class="va">True</span>)</span></code></pre></div>
 <h2 id="shoelace-theorem"><a
 href="https://artofproblemsolving.com/wiki/index.php/Shoelace_Theorem">Shoelace
 Theorem</a></h2>
@@ -767,6 +778,20 @@ eschew pointful definitions.</p>
 <h2 id="polynomials">Polynomials</h2>
 <h3 id="evaluation">Evaluation</h3>
 <pre><code>λp.λx. (+)/ ((*)`(~p) (gen. 1 (*x) (𝓉p)))</code></pre>
+<h2 id="covariance-matrix">Covariance Matrix</h2>
+<p>Given a <span class="math inline">\(K \times N\)</span> matrix of
+<span class="math inline">\(N\)</span> obervations on <span
+class="math inline">\(K\)</span> variables, we can compute the sample
+covariance matrix thusly:</p>
+<pre><code>λxs.
+{
+  𝜇 ← [⸎n⟜ ℝ(:x); (+)/x%n];
+  rs ← 𝜇&#39;xs;
+  nd ⟜ [(-x)&#39;y]`{0,1∘[2]} rs xs;
+  N ⟜ ℝ(:({.xs))-1;
+  nd [(+)/(*)`x y%N]⊗ nd
+}</code></pre>
+<p>The array style gives a new take on the problem.</p>
 <h2 id="array">Array</h2>
 <p>To take all but the last 6 elements:</p>
 <pre><code>[{.\`7 x]</code></pre>
@@ -838,12 +863,12 @@ alongside the offsets with:</p>
   ; pxs ← (+)Λ dxs; pys ← (+)Λ dys; pts ⟜ (+)Λₒ 0 dts; T ⟜}. pts
   ; coeffs ← λn.
     { n ⟜ ℝn; k ⟜ 2*n*𝜋%T
+    ; c ⟜ T%(2*n^2*𝜋^2)
     ; cosDiffs ⟜ (-)\~([cos.(k*x)]&#39;pts)
     ; sinDiffs ⟜ (-)\~([sin.(k*x)]&#39;pts)
-    ; c ⟜ T%(2*n^2*𝜋^2)
     ; aₙ ← c*sum ((*)`dxss cosDiffs)
-    ; bₙ ← c*sum ((*)`dxss sinDiffs)
     ; cₙ ← c*sum ((*)`dyss cosDiffs)
+    ; bₙ ← c*sum ((*)`dxss sinDiffs)
     ; dₙ ← c*sum ((*)`dyss sinDiffs)
     ; (aₙ,bₙ,cₙ,dₙ)
     }
@@ -885,12 +910,12 @@ class="math inline">\(n\)</span>, <span
 class="math inline">\(\displaystyle \prod_{p|n} p\)</span></p>
 <pre><code>λn.
   { ni ⟜ ⌊(√(ℝn))
-  ; isPrime ← λn.¬((∨)/ₒ #f ([(n|x)=0]&#39;(⍳ 2 (⌊(√(ℝn))) 1)))
-  ; pf ⇐ (isPrime #.)
-  ; pps ⟜  pf ((λk. ((n|k)=0)) #. (⍳ 2 ni 1))
+  ; pns ← (⍳ 2 ni 1)
+  ; isPrime ← λn.¬((∨)/ₒ #f ([(n|x)=0]&#39;(⍳ 2 (⌊(√(ℝn))) 1))); pf ⇐ (isPrime #.)
+  ; pps ⟜  ((λk. ((n|k)=0)) #. pns)
   ; ?ni^2=n
-    ,.((*)/ₒ 1 (pf ((n/.)&#39;(}:? pps))⧺pps))
-    ,.((*)/ₒ 1 (pf (n ⊲ ((n/.)&#39;pps))⧺pps))
+    ,.((*)/ₒ 1 (pf (pps⧺(n/.)&#39;(}:? pps))))
+    ,.((*)/ₒ 1 (pf (n ⊲ pps⧺((n/.)&#39;pps))))
   }</code></pre>
 <p>This shows the awkwardness of an array style.</p>
 <h2 id="python-extension-module">Python Extension Module</h2>
@@ -24010,7 +24035,7 @@ from being inlined and thence speeds compilation.</p>
   I ← λz.λa.λb. incΒ z a b%Β a b;
   I ((n*x)%(m+n*x)) (n%2) (m%2)
 }</code></pre>
-<p>Note that Apple does not have imports so we have to re-type the
-definition of the gamma function each time.</p>
+<p>Apple does not have imports so we have to re-type the definition of
+the gamma function each time.</p>
 </body>
 </html>
