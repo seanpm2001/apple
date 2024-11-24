@@ -178,6 +178,18 @@ Enter `:help` in REPL:
 ...
 ```
 
+### Vim Plugin
+
+`:h apple` lists potentially useful digraphs, viz.
+
+```
+←   <-
+⟜   o-
+ℯ   ee
+Λ   /\
+⋮
+```
+
 ### Python Module
 
 To display module documentation:
