@@ -310,9 +310,9 @@ instance PS (E a) where
     ps _ (Builtin _ op) | isBinOp op                              = parens (pretty op)
     ps _ (Builtin _ b)                                            = pretty b
     ps d (EApp _ (Builtin _ (TAt i)) e)                           = parensp (d>9) (ps 10 e <> "->" <> pretty i)
-    ps _ (EApp _ (Builtin _ op) e0) | isBinOp op                  = parens (ps 10 e0 <+> pretty op)
-    ps d (EApp _ (EApp _ (Builtin _ op) e0) e1) | Just d' <- mPrec op = parensp (d>d') (ps (d'+1) e0 <+> pretty op <+> ps (d'+1) e1)
-    ps _ (EApp _ (EApp _ (Builtin _ op) e0) e1) | isBinOp op      = parens (ps 10 e0 <+> pretty op <+> ps 10 e1)
+    ps _ (EApp _ (Builtin _ op) e0) | isBinOp op                  = parens (ps 10 e0 <> pretty op)
+    ps d (EApp _ (EApp _ (Builtin _ op) e0) e1) | Just d' <- mPrec op = parensp (d>d') (ps (d'+1) e0 <> pretty op <> ps (d'+1) e1)
+    ps _ (EApp _ (EApp _ (Builtin _ op) e0) e1) | isBinOp op      = parens (ps 10 e0 <> pretty op <> ps 10 e1)
     ps _ (EApp _ (EApp _ (EApp _ (Builtin _ Iter) e0) e1) e2)     = parens (ps 10 e0 <> "^:" <+> ps 10 e1 <+> ps 11 e2)
     ps _ (EApp _ (EApp _ (EApp _ (Builtin _ FoldS) e0) e1) e2)    = parens (pretty e0 <> "/ₒ" <+> pretty e1 <+> pretty e2)
     ps _ (EApp _ (EApp _ (EApp _ (Builtin _ Foldl) e0) e1) e2)    = parens (pretty e0 <> "/l" <+> pretty e1 <+> pretty e2)

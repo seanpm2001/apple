@@ -7,8 +7,6 @@ import           R
 import           R.R
 import           Sh
 
--- TODO zip-of-map->zip
-
 fop op e0 = EApp F (EApp (F ~> F) (Builtin (F ~> F ~> F) op) e0)
 eMinus = fop Minus; eDiv = fop Div
 
