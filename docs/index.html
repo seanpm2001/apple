@@ -538,7 +538,7 @@ Arr (3×2) [ [1.0, 0.0]
 Vec 10 [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]</code></pre>
 <h2 id="infix">Infix</h2>
 <p>Moving average:</p>
-<pre><code> &gt; [((+)/x)%ℝ(:x)]\` 7 (frange 0 9 10)
+<pre><code> &gt; [(+)/x%ℝ(:x)]\` 7 (frange 0 9 10)
 [3.0, 4.0, 5.0, 6.0]</code></pre>
 <pre><code> &gt; [x]\`4 (frange 0 5 6)
 [ [0.0, 1.0, 2.0, 3.0]
@@ -618,7 +618,7 @@ for higher-rank windows.</p>
 Vec 8 [4.0, 4.0, 4.0, 3.0, 3.0, 3.0, 1.0, 1.0]</code></pre>
 <pre><code> &gt; [(⋉)/x] \`3 ⟨_1,0,4,_2,3,3,1,1,0,_5.0⟩
 Vec 8 [4.0, 4.0, 4.0, 3.0, 3.0, 3.0, 1.0, 1.0]</code></pre>
-<pre><code> &gt; ([((+)/* 0 (x::Arr (2 × 3) float))%ℝ(:x)] ⨳ {2,3}) ⟨⟨1.0,2,0,0⟩,⟨_1,_2,3,4⟩,⟨5,6,3,1⟩,⟨3,1,1,3⟩⟩
+<pre><code> &gt; ([(+)/* 0 (x::Arr (2×3) float)%ℝ(:x)] ⨳ {2,3}) ⟨⟨1.0,2,0,0⟩,⟨_1,_2,3,4⟩,⟨5,6,3,1⟩,⟨3,1,1,3⟩⟩
 Arr (3×2) [ [0.5, 1.1666666666666665]
           , [2.333333333333333, 2.5]
           , [3.1666666666666665, 2.5] ]</code></pre>
@@ -681,7 +681,7 @@ valid identifiers but <code>𝜉s</code> is not.</p>
 <h3 id="time">Time</h3>
 <p>In the REPL, one can use <code>⏱</code> in place of
 <code>:bench</code>, i.e.</p>
-<pre><code>⏱ [((+)/x)%ℝ(:x)]\`7 (𝒻 0 999 1000)</code></pre>
+<pre><code>⏱ [(+)/x%ℝ(:x)]\`7 (𝒻 0 999 1000)</code></pre>
 <h1 id="examples">Examples</h1>
 <h2 id="linear-regression">Linear Regression</h2>
 <pre><code>λxs.λys.
@@ -785,8 +785,7 @@ class="math inline">\(K\)</span> variables, we can compute the sample
 covariance matrix thusly:</p>
 <pre><code>λxs.
 {
-  𝜇 ← [⸎n⟜ ℝ(:x); (+)/x%n];
-  rs ← 𝜇&#39;xs;
+  𝜇 ← [⸎n⟜ ℝ(:x); (+)/x%n]; rs ← 𝜇&#39;xs;
   nd ⟜ [(-x)&#39;y]`{0,1∘[2]} rs xs;
   N ⟜ ℝ(:({.xs))-1;
   nd [(+)/(*)`x y%N]⊗ nd
