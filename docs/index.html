@@ -909,9 +909,9 @@ class="math inline">\(n\)</span>, <span
 class="math inline">\(\displaystyle \prod_{p|n} p\)</span></p>
 <pre><code>λn.
   { ni ⟜ ⌊(√(ℝn))
-  ; pns ← (⍳ 2 ni 1)
+  ; pns ← ⍳ 2 ni 1
   ; isPrime ← λn.¬((∨)/ₒ #f ([(n|x)=0]&#39;(⍳ 2 (⌊(√(ℝn))) 1))); pf ⇐ (isPrime #.)
-  ; pps ⟜  ((λk. ((n|k)=0)) #. pns)
+  ; pps ⟜  (λk. ((n|k)=0)) #. pns
   ; ?ni^2=n
     ,.((*)/ₒ 1 (pf (pps⧺(n/.)&#39;(}:? pps))))
     ,.((*)/ₒ 1 (pf (n ⊲ pps⧺((n/.)&#39;pps))))
