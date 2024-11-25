@@ -677,7 +677,7 @@ Note the array style: `⊖`, ` (zip), and fold are enough to eschew pointful def
 ### Evaluation
 
 ```
-λp.λx. (+)/ ((*)`(~p) (gen. 1 (*x) (𝓉p)))
+λp.λx. ~p⋅gen. 1 (*x) (𝓉p)
 ```
 
 ## Covariance Matrix
@@ -691,7 +691,7 @@ the sample covariance matrix thusly:
   𝜇 ← [⸎n⟜ ℝ(:x); (+)/x%n]; rs ← 𝜇'xs;
   nd ⟜ [(-x)'y]`{0,1∘[2]} rs xs;
   N ⟜ ℝ(:({.xs))-1;
-  nd [(+)/(*)`x y%N]⊗ nd
+  nd [x⋅y%N]⊗ nd
 }
 ```
 
