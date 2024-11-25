@@ -54,7 +54,7 @@ To JIT compile a function:
 
 ```python
 >>> import apple
->>> moving_average=apple.jit('([((+)/x)%(ℝ(:x))]\\`7)')
+>>> moving_average=apple.jit('([(+)/x%ℝ(:x)]\\`7)')
 ```
 
 Apple accepts and returns NumPy arrays:
@@ -68,14 +68,14 @@ array([3., 4., 5., 6.])
 ### Debug Facilities
 
 ```
->>> apple.typeof('([((+)/x)%(ℝ(:x))]\\`7)')
+>>> apple.typeof('([(+)/x%ℝ(:x)]\\`7)')
 'Vec (i + 7) float → Vec i float'
 ```
 
 We can inspect generated assembly with:
 
 ```
->>> print(apple.asm('[(+)/((*)`((x::Vec n float)) y)]'))
+>>> print(apple.asm('[(+)/(*)`((x::Vec n float)) y]'))
 
     mov rdx, [rdi+8]
     movq xmm3, [rdi+16]
