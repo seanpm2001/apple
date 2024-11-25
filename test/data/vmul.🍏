@@ -1,6 +1,2 @@
-λA.λx.
-{
-  dot ⇐ [(+)/((*)`x y)];
-  -- "iterate over second axis" (i.e. columns)
-  (dot x)`{1∘[2]} (A::Arr (i × j) float)
-}
+-- "iterate over second axis" (i.e. columns)
+λA.λx. (x⋅)`{1∘[2]} (A::Arr (i × j) float)
