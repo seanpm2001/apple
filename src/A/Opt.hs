@@ -26,6 +26,14 @@ optA e@FLit{}              = pure e
 optA e@BLit{}              = pure e
 optA e@Var{}               = pure e
 optA (Builtin t (Rank rs)) = pure (Builtin t (Rank (g<$>rs))) where g r@(_,Just{})=r; g (cr,Nothing)=(cr, Just [1..cr])
+optA (Builtin ty Dot)      | Arrow tA (Arrow _ tN) <- ty = do
+    a <- nextU "a" tA; b <- nextU "b" tA
+    x₀ <- nextU "x₀" tN; y₀ <- nextU "y₀" tN
+    x <- nextU "x" tN; y <- nextU "y" tN; z <- nextU "z" tN
+    let n3=tN~>tN~>tN; n2=tN~>tN
+    let op=Lam n3 x₀ (Lam n2 y₀ (EApp tN (EApp n2 (Builtin n3 Times) (Var tN x₀)) (Var tN y₀)))
+        zop=Lam (tN~>tN~>tN~>tN) x (Lam n3 y (Lam n2 z (EApp tN (EApp n2 (Builtin n3 Plus) (Var tN x)) (EApp tN (EApp n2 (Builtin n3 Times) (Var tN y)) (Var tN z)))))
+    pure $ Lam ty a (Lam undefined b (Id tN $ FoldOfZip op zop [Var tA a, Var tA b]))
 optA (Builtin ty C)        | Arrow fTy (Arrow gTy xTy@(Arrow tC tD)) <- ty = do
     f <- nextU "f" fTy; g <- nextU "g" gTy; x <- nextU "x" tC
     pure $ Lam ty f (Lam (gTy ~> xTy) g (Lam (tC ~> tD) x (EApp tD (Var fTy f) (EApp undefined (Var gTy g) (Var tC x)))))
