@@ -166,6 +166,7 @@ instance Pretty Builtin where
     pretty Sr        = ">>"
     pretty Sl        = "<<"
     pretty C         = "∴"
+    pretty Dot       = "⋅"
     pretty Outer     = "⊗"
 
 data Builtin = Plus | Minus | Times | Div | IntExp | Exp | Log
@@ -182,7 +183,7 @@ data Builtin = Plus | Minus | Times | Div | IntExp | Exp | Log
              | Mul | VMul | Outer | R | Head | HeadM | Tail | Init | RevE
              | TailM | InitM
              | Sin | Cos | Tan | Rot | Cyc | A1 | Even | Odd | IOf | Abs
-             | And | Or | Xor | N | Sr | Sl | C
+             | And | Or | Xor | N | Sr | Sl | C | Dot
              deriving (Generic)
              -- TODO: (feuilleter, stagger, ...) reshape...?
 
@@ -284,6 +285,7 @@ isBinOp Filt   = True
 isBinOp Ices   = True
 isBinOp Sr     = True
 isBinOp Sl     = True
+isBinOp Dot    = True
 isBinOp _      = False
 
 data B = L | D | Λ
@@ -354,8 +356,8 @@ data Idiom = FoldSOfZip { seedI, opI :: E (T ()), esI :: [E (T ())] }
            deriving (Generic)
 
 instance Pretty Idiom where
-    pretty (FoldSOfZip seed op es) = parens ("foldS-of-zip" <+> pretty seed <+> pretty op <+> pretty es)
-    pretty (FoldOfZip zop op es)   = parens ("fold-of-zip" <+> pretty zop <+> pretty op <+> pretty es)
+    pretty (FoldSOfZip seed op es) = parens ("foldS-of-zip" <+> pretty seed <+> parens (pretty op) <+> pretty es)
+    pretty (FoldOfZip zop op es)   = parens ("fold-of-zip" <+> parens (pretty zop) <+> parens (pretty op) <+> pretty es)
     pretty (FoldGen seed g f n)    = parens ("fold-gen" <+> brackets (pretty seed) <+> parens (pretty g) <+> parens (pretty f) <+> parens (pretty n))
     pretty (AShLit re es)          = parens ("re" <+> hsep (pretty <$> re) <+> "|" <+> pretty es)
 
