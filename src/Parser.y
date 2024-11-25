@@ -39,7 +39,8 @@ import Sh
     rsqbracket { TokSym $$ RSqBracket }
     lparen { TokSym $$ LParen }
     rparen { TokSym $$ RParen }
-    dot { TokSym $$ Dot }
+    dot { TokSym $$ L.Dot }
+    dp { TokSym $$ Dp }
     bind { TokSym $$ Bind }
     lbind { TokSym $$ LBind }
     polybind { TokSym $$ PolyBind }
@@ -263,7 +264,7 @@ BBin :: { E AlexPosn }
      | ice { Builtin $1 Ices }
      | para { Builtin $1 Filt }
      | sr { Builtin $1 A.Sr } | sl { Builtin $1 A.Sl }
-     | therefore { Builtin $1 C }
+     | therefore { Builtin $1 C } | dp { Builtin $1 A.Dot }
 
 B :: { (Bnd, (Nm AlexPosn, E AlexPosn)) }
   : name bind E { (L, ($1, $3)) }

@@ -173,6 +173,7 @@ tokens :-
         ">>"                     { mkSym Sr }
         "<<"                     { mkSym Sl }
         ∴                        { mkSym Therefore }
+        ⋅                        { mkSym Dp }
         ⊖                        { mkSym Rotate }
         ⊙                        { mkSym Cyc }
         ˙                        { mkSym A1 }
@@ -332,7 +333,7 @@ data Sym = Plus | Minus | Fold | Foldl | Percent | Times | Semicolon | Bind | Po
          | FoldA | FoldS | Tilde | Cyc | A1 | Mod
          | AtDot | Eye | Para | Weier | Ice | B | Sharp
          | And | Or | Xor | Not | Sr | Sl | IDiv | Inv
-         | Therefore
+         | Therefore | Dp
          deriving (Generic, NFData)
 
 instance Pretty Sym where
@@ -357,6 +358,7 @@ instance Pretty Sym where
     pretty RParen       = ")"
     pretty Lam          = "λ"
     pretty Dot          = "."
+    pretty Dp           = "⋅"
     pretty Caret        = "^"
     pretty Quot         = "'"
     pretty Zip          = "`"

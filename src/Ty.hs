@@ -594,6 +594,9 @@ tyB _ Fib = do
 tyB _ IRange = do {n <- ftie; pure (I ~> I ~> I ~> Arr (n `Cons` Nil) I, mempty)}
 tyB l Plus = tyNumBinOp l; tyB l Minus = tyNumBinOp l
 tyB l Times = tyNumBinOp l
+tyB l Dot = do
+    n <- fc "a" l IsNum; i <- fti "i"
+    pure (vV i n ~> vV i n ~> n, mempty)
 tyB l Gte = tyOrdBinRel l; tyB l Gt = tyOrdBinRel l; tyB l Lt = tyOrdBinRel l
 tyB l Lte = tyOrdBinRel l; tyB l Eq = tyEqBinRel l; tyB l Neq = tyEqBinRel l
 tyB l And = tyBoo l; tyB l Or = tyBoo l; tyB l Xor = tyBoo l

@@ -39,7 +39,7 @@ isBinOp RevE   = False
 isBinOp _      = True
 
 fi :: Builtin -> Int
-fi C = 9
+fi C = 9; fi Dot = 8
 fi Succ = 9; fi Fold = 9
 fi IntExp = 8; fi Exp = 8
 fi Times = 7; fi Div = 7; fi Mod = 7
@@ -64,6 +64,7 @@ lassoc Mod    = True
 lassoc Times  = True
 lassoc Max    = True
 lassoc Min    = True
+lassoc Dot    = False
 lassoc Mul    = True
 lassoc VMul   = False
 lassoc Plus   = True
