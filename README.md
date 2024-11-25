@@ -68,7 +68,7 @@ to get vector-matrix multiplication:
 ```
 λA.λx.
 {
-  dot ⇐ [(+)/((*)`x y)];
+  dot ⇐ [(+)/(*)`x y];
   (dot x)`{1∘[2]} (A::Arr (i`Cons`j`Cons`Nil) float)
 }
 ```
