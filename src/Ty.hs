@@ -579,7 +579,7 @@ tyB _ Rot = do
     pure (I ~> Arr (i `Cons` sh) a ~> Arr (i `Cons` sh) a, mempty)
 tyB _ Cyc = do
     sh <- fsh "sh"; a <- ftv "a"; i <- fti "i"; n <- ftie
-    pure (Arr (i `Cons` sh) a ~> I ~> Arr (n `Cons` sh) a, mempty)
+    pure (Arr (i `Cons` sh) a ~> Li i ~> vV i a, mempty)
 tyB _ HeadM = do
     a <- ftv "a"; i <- fti "i"; sh <- fsh "sh"
     pure (Arr (i `Cons` sh) a ~> Arr sh a, mempty)
@@ -719,9 +719,8 @@ tyB _ Size = do
     a <- ftv "a"
     pure (Arr shV a ~> I, mempty)
 tyB _ Gen = do
-    a <- ftv "a"; n <- ftie
-    let arrTy = Arr (n `Cons` Nil) a
-    pure (a ~> (a ~> a) ~> I ~> arrTy, mempty)
+    a <- ftv "a"; n <- fti "n"
+    pure (a ~> (a ~> a) ~> Li n ~> vV n a, mempty)
 tyB l Mul = do
     a <- fc "a" l IsNum
     i <- fti "i"; j <- fti "j"; k <- fti "k"
@@ -893,32 +892,6 @@ tyE s (EApp _ (EApp _ (EApp _ (Builtin _ Gen) x) f) (ILit _ n)) = do
         lX = eAnn x; lF = eAnn f
     s1' <- liftU $ mp (lF, f) s1 ((tyX $> lX) ~> (tyX $> lX)) (tyF $> lF)
     pure (EApp arrTy (EApp (I ~> arrTy) (EApp (tyF ~> I ~> arrTy) (Builtin (tyX ~> tyF ~> I ~> arrTy) Gen) x') f') (ILit I n), s1')
-tyE s (EApp l e@(EApp _ (EApp _ (Builtin _ Gen) x) f) n) = do
-    (nA, sϵ) <- tyE s n
-    case aT (void sϵ) $ eAnn nA of
-        iT@(Li ix) -> do
-            (x',s0) <- tyE sϵ x; (f',s1) <- tyE s0 f
-            let tyX = eAnn x'; tyF = eAnn f'
-                arrTy = vV ix tyX
-                lX = eAnn x; lF = eAnn f
-            s1' <- liftU $ mp (lF, f) s1 ((tyX $> lX) ~> (tyX $> lX)) (tyF $> lF)
-            pure (EApp arrTy (EApp (iT ~> arrTy) (EApp (tyF ~> iT ~> arrTy) (Builtin (tyX ~> tyF ~> iT ~> arrTy) Gen) x') f') nA, s1')
-        _ -> do
-            a <- ft "a" l; b <- ft "b" l
-            (e', s0) <- tyE sϵ e
-            let eT = Arrow a b
-            s1 <- liftU $ mp (l,e) s0 (eAnn e'$>l) eT
-            s2 <- liftU $ mp (l,n) s1 (eAnn nA$>l) a
-            pure (EApp (void b) e' nA, s2)
-tyE s eC@(EApp lC (EApp _ (Builtin _ Cyc) e) (ILit _ m)) = do
-    (e0, s0) <- tyE s e
-    ix <- fti "ix"
-    a <- ftv "a"
-    let t=Arr (ix `Cons` Nil) a
-        arrTy = Arr (StaMul () ix (Ix () (fromIntegral m)) `Cons` Nil) a
-        lE=eAnn e
-    s1 <- liftU $ mp (lC,eC) s0 (eAnn e0$>lE) (t$>lE)
-    pure (EApp arrTy (EApp (I ~> arrTy) (Builtin (t ~> I ~> arrTy) Cyc) e0) (ILit I m), s1)
 tyE s (EApp _ (EApp _ (EApp _ (Builtin _ IRange) (ILit _ b)) (ILit _ e)) (ILit _ si)) = do
     let arrTy = vV (Ix () (fromInteger ((e-b+si) `quot` si))) I
     pure (EApp arrTy (EApp (I ~> arrTy) (EApp (I ~> I ~> arrTy) (Builtin (I ~> I ~> I ~> arrTy) IRange) (ILit I b)) (ILit I e)) (ILit I si), s)
