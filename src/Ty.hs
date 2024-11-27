@@ -604,7 +604,7 @@ tyB _ Fib = do
     n <- ftie; a <- ftv "a"
     let arrTy = Arr (n `Cons` Nil) a
     pure (a ~> a ~> (a ~> a ~> a) ~> I ~> arrTy, mempty)
-tyB _ IRange = do {n <- ftie; pure (I ~> I ~> I ~> Arr (n `Cons` Nil) I, mempty)}
+tyB _ IRange = do {n <- ftie; pure (I ~> I ~> I ~> vV n I, mempty)}
 tyB l Plus = tyNumBinOp l; tyB l Minus = tyNumBinOp l
 tyB l Times = tyNumBinOp l
 tyB l Dot = do
