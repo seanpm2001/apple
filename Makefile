@@ -3,7 +3,7 @@ include mk/os.mk
 MAKEFLAGS += -j
 .DELETE_ON_ERROR:
 
-.PHONY: test
+.PHONY: test ty test-pyc
 
 HC ?= ghc
 
@@ -45,6 +45,10 @@ install:
 	strip $$(readlink -f $$(which atc))
 	strip $$(readlink -f $$(which writeo))
 	strip $$(readlink -f $$(which arepl))
+
+ty: $(HS_SRC)
+	cabal build exe:atc
+	fd '\.(🍏|🍎)$$' math test -x cabal run atc --
 
 test: libapple$(EXT)
 	python3 test/py/mat.py
