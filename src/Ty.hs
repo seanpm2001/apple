@@ -316,6 +316,9 @@ mguI f inp (StaMul l n mi@(Ix l₀ m)) (StaPlus _ i (Ix l₁ j)) = do
 -- n*m, i+j, (m,j known) then must be divisible by m and >=j
 -- unify to m*k+lcm(m,j)
 -- Then n=k+(lcm(m,j)/m), i=m*k+(lcm(m,j)-j)
+mguI f inp n@(StaMul _ _ Ix{}) (StaPlus l1 i@Ix{} j) = mguI f inp n (StaPlus l1 j i)
+mguI f inp (StaMul l0 n@Ix{} m) i@(StaPlus _ _ Ix{}) = mguI f inp (StaMul l0 m n) i
+mguI f inp (StaMul l0 n@Ix{} m) (StaMul l1 i@Ix{} j) = mguI f inp (StaMul l0 m n) (StaPlus l1 j i)
 mguI _ _ i0 i1 = error (show (i0,i1))
 
 splitFromLeft :: Int -> [a] -> ([a], [a])
