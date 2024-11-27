@@ -33,10 +33,10 @@ cM (Let _ (_, e) e') = cM e <|> cM e'
 cM (LLet _ (_, e) e') = cM e <|> cM e'
 cM (Def _ _ e') = cM e' -- FIXME hm
 cM (EApp _ e e') = cM e <|> cM e'
-cM (ALit _ es) = foldMapAlternative cM es
+cM (ALit _ es) = cM ||> es
 cM (Lam _ _ e) = cM e
 cM (Cond _ p e e') = cM p <|> cM e <|> cM e'
-cM (Tup _ es) = foldMapAlternative cM es
+cM (Tup _ es) = cM ||> es
 cM Builtin{} = Nothing
 cM ILit{} = Nothing
 cM FLit{} = Nothing
@@ -47,16 +47,17 @@ cM Id{} = error "Internal error."; cM Ann{} = error "Internal error."
 
 mrT :: T a -> Maybe (T a)
 mrT t@TVar{}     = Just t
+mrT t@IZ{}       = Just t
 mrT (Arr _ t)    = mrT t
 mrT (Arrow t t') = mrT t <|> mrT t'
-mrT (P ts)       = foldMapAlternative mrT ts
+mrT (P ts)       = mrT||>ts
 mrT t@Ρ{}        = Just t
 mrT _            = Nothing
 
 flT :: T a -> Maybe (T a)
 flT t@(Arr _ tϵ) | ha tϵ = Just t
 flT (Arrow t t') = flT t <|> flT t'
-flT (P ts) = foldMapAlternative flT ts
+flT (P ts) = flT ||> ts
 flT _ = Nothing
 
 ha :: T a -> Bool
@@ -71,7 +72,7 @@ har Arr{} = True; har (P ts) = any har ts; har _ = False
 ata :: T a -> Maybe (T a)
 ata t@(Arr _ (P ts)) | any har ts = Just t
 ata (Arrow t t') = ata t <|> ata t'
-ata (P t) = foldMapAlternative ata t
+ata (P t) = ata ||> t
 ata _ = Nothing
 
 dynI :: I a -> Bool
@@ -89,8 +90,8 @@ dynSh Rev{}       = True
 dynSh Cat{}       = True
 dynSh Π{}         = True
 
-foldMapAlternative :: (Traversable t, Alternative f) => (a -> f b) -> t a -> f b
-foldMapAlternative f xs = asum (f <$> xs)
+(||>) :: (Traversable t, Alternative f) => (a -> f b) -> t a -> f b
+f ||> xs = asum (f <$> xs)
 
 desugar :: a
 desugar = error "Internal error. Should have been desugared."
