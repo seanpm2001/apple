@@ -73,6 +73,7 @@ instance PS (T a) where
 
 rLi :: T a -> T a
 rLi Li{}          = I
+rLi (IZ _ n)      = TVar n
 rLi (Arrow t0 t1) = Arrow (rLi t0) (rLi t1)
 rLi (Arr sh t)    = Arr sh (rLi t)
 rLi (Ρ n ts)      = Ρ n (rLi <$> ts)
