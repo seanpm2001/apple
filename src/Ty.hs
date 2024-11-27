@@ -943,7 +943,7 @@ tyE s (LLet _ (n, e') e) = do
     pure (LLet (eAnn eRes) (n { loc = e'Ty }, e'Res) eRes, s'')
 tyE s e@(ALit l es) = do
     a <- ftv "a"
-    (es', s') <- sSt s es
+    (es', s') <- tS tyE s es
     let eTys = a : fmap eAnn es'
         uHere sϵ t t' = mp (l,e) sϵ (t$>l) (t'$>l)
     ss' <- liftU $ zS uHere s' eTys (tail eTys)
@@ -972,7 +972,7 @@ tyE s (Var l n@(Nm _ (U u) _)) = do
                 Just t  -> do {t'<- cloneWithConstraints t; pure (Var t' (n$>t'), s)}
                 Nothing -> throwError $ IllScoped l n
 tyE s (Tup _ es) = do
-    (es', s') <- sSt s es
+    (es', s') <- tS tyE s es
     let eTys = eAnn<$>es'
     pure (Tup (P eTys) es', s')
 tyE s (Ann l e t) = do
@@ -982,10 +982,6 @@ tyE s (Ann l e t) = do
 tyE _ Dfn{} = desugar
 tyE _ ResVar{} = desugar
 tyE _ Parens{} = desugar
-
-sSt :: Subst a -> [E a] -> TyM a ([E (T ())], Subst a)
-sSt s []     = pure([], s)
-sSt s (e:es) = do{(e',s') <- tyE s e; first (e':) <$> sSt s' es} -- TODO: recurse other way idk
 
 desugar :: a
 desugar = error "Internal error. Should have been desugared by now."
