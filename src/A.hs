@@ -149,7 +149,7 @@ instance Pretty Builtin where
     pretty A1        = "˙"
     pretty Even      = "even."
     pretty Odd       = "odd."
-    pretty Mod       = "mod"
+    pretty Mod       = "|"
     pretty IOf       = "@."
     pretty Filt      = "§"
     pretty Abs       = "abs."
