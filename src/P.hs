@@ -1,10 +1,11 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 -- pipeline
-module P ( Err (..)
+module P ( Err (..), FErr (..)
          , CCtx
          , tyParse
          , tyParseCtx
+         , tc
          , tyExpr
          , tyOf
          , tyC
@@ -66,7 +67,7 @@ import           L
 import           Nm
 import           Parser
 import           Parser.Rw
-import           Prettyprinter                    (Doc, Pretty (..))
+import           Prettyprinter                    (Doc, Pretty (..), (<+>))
 import           Prettyprinter.Ext
 import           R.Dfn
 import           R.R
@@ -74,12 +75,20 @@ import           Sys.DL
 import           Ty
 import           Ty.M
 
+data FErr a = FE !FilePath (Err a)
+
+instance Pretty a => Pretty (FErr a) where
+    pretty (FE fp e) = pretty fp <> ":" <> pretty e
+
+instance Pretty a => Show (FErr a) where show=show.pretty
+
 data Err a = PErr ParseE | TyErr (TyE a) | RErr RE deriving (Generic)
 
 instance Pretty a => Show (Err a) where
     show = show . pretty
 
 instance (Pretty a, Typeable a) => Exception (Err a) where
+instance (Pretty a, Typeable a) => Exception (FErr a) where
 
 instance NFData a => NFData (Err a) where
 
@@ -217,6 +226,11 @@ tyConstrCtx st bsl =
 
 tyParseCtx :: AlexUserState -> BSL.ByteString -> Either (Err AlexPosn) (E (T ()), Int)
 tyParseCtx st = fmap sel . tyConstrCtx st where sel ~(x, _, z) = (x, z)
+
+tc :: FilePath -> IO ()
+tc fp = do
+    s <- BSL.readFile fp
+    either (throwIO.FE fp) (\_ -> pure ()) $ tyParse s
 
 tyParse :: BSL.ByteString -> Either (Err AlexPosn) (E (T ()), Int)
 tyParse = tyParseCtx alexInitUserState
