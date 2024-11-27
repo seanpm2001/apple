@@ -93,7 +93,7 @@ allT = testGroup "jit"
     , testCase "mapAa" $ do { (AA 2 [3,2] res) <- fpAa "test/data/mfa.🍎" (AA 1 [3] [1,2,3::Double]); res @?= [1,1,2,2,3,3::Double] }
     , testCase "consSum" $ do { (AA 1 [3] res) <- fpAaa "test/data/consSum.🍏" (AA 1 [3] [1,0,0::Double]) (AA 2 [3,2] [2,3,4,5,6,9::Double]); res @?= [6,9,15::Double] }
     , testCase "gen." $ do { res <- fpFfa "test/data/gen.🍎" 1 (sqrt 2) ; last (hs2 <$> res) @?= (1.1981402347355923 :: Double, 1.1981402347355923 :: Double ) }
-    , testCase "completeElliptic" $ do { res <- fpFf "math/completeElliptic.🍎" 0.8 ; res @?= completeElliptic 0.8 }
+    , testCase "completeElliptic" $ do { res <- fpFf "math/completeElliptic.🍎" 0.8 ; res .?= completeElliptic 0.8 }
     , testCase "trainXor" $ do
         (AA 2 [2,2] res0, AA 1 [2] res1, AA 1 [2] res2, x) <- fpAaafp4 "test/data/trainXor.🍎" (AA 2 [2,2] [0.51426693,0.56885825,0.48725347,0.15041493]) (AA 1 [2] [0.14801747,0.37182892]) (AA 1 [2] [0.79726405,0.67601843]) 0.57823076
         res0 @?= [0.5130108836813994,0.563839153826952,0.48606794571593476,0.1463165649068566]
@@ -113,7 +113,7 @@ allT = testGroup "jit"
     , testCase "softmax" $ do { (AA 2 [2,2] res) <- fpAa "test/data/softmax.🍎" (AA 2 [2,2] [0.25,0.75,0.3,0.5::Double]); res @?= [0.4875026035157896,0.5621765008857981,0.5124973964842103,0.4378234991142019::Double] }
     , testCase "gamma" $ do { res <- gammaJit (-3.5) ; res @?= gamma (-3.5) }
     , testCase "tcdf" $ do { res <- fpFff "math/tcdf.🍎" 2 12 ; res ≈ tcdf 12 2 }
-    , testCase "fcdf" $ do { res <- fpFfff "math/fcdf.🍎" 5 2 2 ; res @?= 0.6339381452606089 }
+    , testCase "fcdf" $ do { res <- fpFfff "math/fcdf.🍎" 5 2 2 ; res .?= 0.6339381452606089 }
     , testCase "chi-squared cdf" $ do { res <- fpFff "math/chisqcdf.🍎" 2 2 ; res @?= chisqcdf 2 2 }
     , testCase "chi-squared cdf" $ do { res <- fpFff "math/chisqcdf.🍎" 10 28 ; res @?= chisqcdf 10 28 }
     , testCase "ramanujan" $ do { res <- fpFf "test/examples/ramanujanFact.🍎" 7 ; res ≈ 5040 }
