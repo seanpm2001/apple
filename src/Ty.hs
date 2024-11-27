@@ -150,8 +150,8 @@ match t t' = either throw id (maM LF t t')
 
 maM :: Focus -> T a -> T a -> Either (TyE a) (Subst a)
 maM f (Li n) (Li m)                 = mI f m n
-maM f (IZ _ n@(Nm _ (U u) _)) I     = Right $ Subst (IM.singleton u I) IM.empty IM.empty
-maM f (IZ _ n@(Nm _ (U u) _)) F     = Right $ Subst (IM.singleton u F) IM.empty IM.empty
+maM _ (IZ _ (Nm _ (U u) _)) I       = Right $ Subst (IM.singleton u I) IM.empty IM.empty
+maM _ (IZ _ (Nm _ (U u) _)) F       = Right $ Subst (IM.singleton u F) IM.empty IM.empty
 maM _ I I                           = Right mempty
 maM _ F F                           = Right mempty
 maM _ B B                           = Right mempty
@@ -213,7 +213,7 @@ aT s@(Subst ts _ _) (Ρ n rs) =
         Just ty@IZ{}   -> aT (s\-u) ty
         Just ty        -> aT s ty
         Nothing        -> Ρ n (aT s<$>rs)
-aT s@(Subst ts _ _) ty'@(IZ i n) =
+aT s@(Subst ts _ _) ty'@(IZ _ n) =
     let u = unU $ unique n in
     case IM.lookup u ts of
         Just ty@TVar{} -> aT (s\-u) ty
@@ -337,7 +337,7 @@ mguI f inp (StaMul l n mi@(Ix l₀ m)) (StaPlus _ i (Ix l₁ j)) = do
 -- Then n=k+(lcm(m,j)/m), i=m*k+(lcm(m,j)-j)
 mguI f inp n@(StaMul _ _ Ix{}) (StaPlus l1 i@Ix{} j) = mguI f inp n (StaPlus l1 j i)
 mguI f inp (StaMul l0 n@Ix{} m) i@(StaPlus _ _ Ix{}) = mguI f inp (StaMul l0 m n) i
-mguI f inp (StaMul l0 n@Ix{} m) (StaMul l1 i@Ix{} j) = mguI f inp (StaMul l0 m n) (StaPlus l1 j i)
+mguI f inp (StaMul l0 n@Ix{} m) (StaPlus l1 i@Ix{} j) = mguI f inp (StaMul l0 m n) (StaPlus l1 j i)
 mguI _ _ i0 i1 = error (show (i0,i1))
 
 splitFromLeft :: Int -> [a] -> ([a], [a])
@@ -460,14 +460,15 @@ mgu _ _ s F F = pure (F, s)
 mgu _ _ s B B = pure (B, s)
 mgu _ _ s t@Li{} I = pure (t, s)
 mgu _ _ s I t@Li{} = pure (t, s)
-mgu _ (l, _) s (IZ i n@(Nm _ (U j) _)) I = pure (t, uTS j I s) where t=Li i
-mgu _ (l, _) s I (IZ i n@(Nm _ (U j) _)) = pure (t, uTS j I s) where t=Li i
-mgu _ _ s F (IZ _ n@(Nm _ (U j) _)) = pure (F, uTS j F s)
-mgu _ _ s (IZ _ n@(Nm _ (U j) _)) F = pure (F, uTS j F s)
-mgu f (l, _) s (Li i0) (IZ i1 n@(Nm _ (U j) _)) = do {(i',iS) <- mguI f (iSubst s) i0 i1; let t=σ$Li i' in pure (t, uTS j t$wI iS s)}
-mgu f (l, _) s (IZ i0 n@(Nm _ (U j) _)) (Li i1) = do {(i',iS) <- mguI f (iSubst s) i0 i1; let t=σ$Li i' in pure (t, uTS j t$wI iS s)}
-mgu f _ s t@(IZ (Ix _ i0) n0) (IZ (Ix _ i1) n1) | i0==i1&&n0==n1 = pure (t, s)
-mgu f _ s t@(IZ i0 n0) (IZ i1 n1@(Nm _ (U u) _)) | n0/=n1 = do {(i',iS) <- mguI f (iSubst s) i0 i1; let t=σ$IZ i' n0 in pure (t, uTS u t s)}
+mgu _ _ s (IZ _ (Nm _ (U j) _)) I = pure (I, uTS j I s)
+mgu _ _ s I (IZ _ (Nm _ (U j) _)) = pure (I, uTS j I s)
+mgu _ _ s F (IZ _ (Nm _ (U j) _)) = pure (F, uTS j F s)
+mgu _ _ s (IZ _ (Nm _ (U j) _)) F = pure (F, uTS j F s)
+mgu f _ s (Li i0) (IZ i1 (Nm _ (U j) _)) = do {(i',iS) <- mguI f (iSubst s) i0 i1; let t=σ$Li i' in pure (t, uTS j t$wI iS s)}
+mgu f _ s (IZ i0 (Nm _ (U j) _)) (Li i1) = do {(i',iS) <- mguI f (iSubst s) i0 i1; let t=σ$Li i' in pure (t, uTS j t$wI iS s)}
+mgu _ _ s t@(IZ (Ix _ i0) n0) (IZ (Ix _ i1) n1) | i0==i1&&n0==n1 = pure (t, s)
+mgu f _ s (IZ i0 n0) (IZ i1 n1@(Nm _ (U u) _)) | n0/=n1 = do {(i',iS) <- mguI f (iSubst s) i0 i1; let t=σ$IZ i' n0 in pure (t, uTS u t$wI iS s)}
+mgu _ _ s (IZ _ n0@(Nm _ (U j) _)) t1@(TVar n1) | n0/=n1 = pure (t1, uTS j t1 s)
 mgu f _ s (Li i0) (Li i1) = do {(i', iS) <- mguI f (iSubst s) i0 i1; pure (σ$Li i', wI iS s)}
 mgu _ _ s t@(TVar n) (TVar n') | n == n' = pure (t, s)
 mgu _ (l, _) s t'@(TVar (Nm _ (U i) _)) t | i `IS.member` occ t = throwError $ OT l t' t
