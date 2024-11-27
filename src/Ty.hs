@@ -113,6 +113,8 @@ liftU a = do
     (b, j) <- liftEither$runStateT a i
     setMaxU j $> b
 
+wI iS (Subst t i sh) = Subst t (iS<>i) sh
+
 mI :: Focus -> I a -> I a -> Either (TyE a) (Subst a)
 mI f i0@(Ix _ i) i1@(Ix _ j) | i == j = Right mempty
                              | otherwise = Left $ MatchIFailed f i0 i1
@@ -148,12 +150,14 @@ match t t' = either throw id (maM LF t t')
 
 maM :: Focus -> T a -> T a -> Either (TyE a) (Subst a)
 maM f (Li n) (Li m)                 = mI f m n
+maM f (IZ _ n@(Nm _ (U u) _)) I     = Right $ Subst (IM.singleton u I) IM.empty IM.empty
+maM f (IZ _ n@(Nm _ (U u) _)) F     = Right $ Subst (IM.singleton u F) IM.empty IM.empty
 maM _ I I                           = Right mempty
 maM _ F F                           = Right mempty
 maM _ B B                           = Right mempty
 maM _ (TVar n) (TVar n') | n == n'  = Right mempty
-maM _ (TVar (Nm _ (U i) _)) t     = Right $ Subst (IM.singleton i t) IM.empty IM.empty
-maM _ (Arrow t0 t1) (Arrow t0' t1') = (<>) <$> maM LF t0 t0' <*> maM RF t1 t1' -- FIXME: use <\> over <>
+maM _ (TVar (Nm _ (U i) _)) t       = Right $ Subst (IM.singleton i t) IM.empty IM.empty
+maM _ (Arrow t0 t1) (Arrow t0' t1') = (<>) <$> maM LF t0 t0' <*> maM RF t1 t1' -- TODO: use <\> over <>
 maM f (Arr sh t) (Arr sh' t')       = (<>) <$> mSh f sh sh' <*> maM f t t'
 maM f (Arr sh t) t'                 = (<>) <$> mSh f sh Nil <*> maM f t t'
 maM f (P ts) (P ts')                = mconcat <$> zipWithM (maM f) ts ts'
@@ -196,6 +200,7 @@ aT s@(Subst ts _ _) ty'@(TVar n) =
     let u = unU $ unique n in
     case IM.lookup u ts of
         Just ty@TVar{} -> aT (s\-u) ty
+        Just ty@IZ{}   -> aT (s\-u) ty
         Just ty@Ρ{}    -> aT (s\-u) ty
         Just ty        -> aT s ty
         Nothing        -> ty'
@@ -205,8 +210,17 @@ aT s@(Subst ts _ _) (Ρ n rs) =
     case IM.lookup u ts of
         Just ty@Ρ{}    -> aT (s\-u) ty
         Just ty@TVar{} -> aT (s\-u) ty
+        Just ty@IZ{}   -> aT (s\-u) ty
         Just ty        -> aT s ty
         Nothing        -> Ρ n (aT s<$>rs)
+aT s@(Subst ts _ _) ty'@(IZ i n) =
+    let u = unU $ unique n in
+    case IM.lookup u ts of
+        Just ty@TVar{} -> aT (s\-u) ty
+        Just ty@IZ{}   -> aT (s\-u) ty
+        Just ty@Ρ{}    -> aT (s\-u) ty
+        Just ty        -> aT s ty
+        Nothing        -> ty'
 aT _ ty = ty
 
 runTyM :: Int -> TyM a b -> Either (TyE a) (b, Int)
@@ -249,6 +263,11 @@ fc :: T.Text -> a -> C -> TyM a (T ())
 fc n l c = do
     nϵ <- freshN n l
     pushVarConstraint nϵ l c $> TVar (void nϵ)
+
+fn :: a -> Integer -> TyM a (T ())
+fn l n = do
+    nϵ <- freshN "n" l
+    pushVarConstraint nϵ l IsNum $> IZ (Ix()$fromInteger n) (void nϵ)
 
 ftv :: T.Text -> TyM a (T ())
 ftv n = ft n ()
@@ -397,8 +416,8 @@ mguPrep f l s t0 t1 =
         t1' = aT s t1
     in mgu f l s ({-# SCC "rwArr" #-} rwArr t0') ({-# SCC "rwArr" #-} rwArr t1')
 
-mp :: (a, E a) -> Subst a -> T a -> T a -> UM a (Subst a)
-mp l s t0 t1 = snd <$> mguPrep LF l s t0 t1
+mp :: (a, E a) -> Focus -> Subst a -> T a -> T a -> UM a (Subst a)
+mp l f s t0 t1 = snd <$> mguPrep f l s t0 t1
 
 occSh :: Sh a -> IS.IntSet
 occSh (SVar (Nm _ (U i) _)) = IS.singleton i
@@ -417,6 +436,7 @@ occI IEVar{}                 = IS.empty
 
 occ :: T a -> IS.IntSet
 occ (TVar (Nm _ (U i) _)) = IS.singleton i
+occ (IZ _ (Nm _ (U i) _)) = IS.singleton i
 occ (Arrow t t')          = occ t <> occ t'
 occ (Arr _ a)             = occ a -- shouldn't need shape?
 occ I                     = IS.empty
@@ -428,6 +448,8 @@ occ (Ρ (Nm _ (U i) _) rs) = IS.insert i $ occ @<> rs
 
 scalar sv = mapShSubst (insert sv Nil)
 
+σ (Li IEVar{}) = I; σ (IZ IEVar{} t) = TVar t; σ t = t
+
 mgu :: Focus -> (a, E a) -> Subst a -> T a -> T a -> UM a (T a, Subst a)
 mgu f l s (Arrow t0 t1) (Arrow t0' t1') = do
     (t0'', s0) <- mgu LF l s t0 t0'
@@ -438,7 +460,15 @@ mgu _ _ s F F = pure (F, s)
 mgu _ _ s B B = pure (B, s)
 mgu _ _ s t@Li{} I = pure (t, s)
 mgu _ _ s I t@Li{} = pure (t, s)
-mgu f _ s (Li i0) (Li i1) = do {(i', iS) <- mguI f (iSubst s) i0 i1; pure (Li i', Subst mempty iS mempty <> s)}
+mgu _ (l, _) s (IZ i n@(Nm _ (U j) _)) I = pure (t, uTS j I s) where t=Li i
+mgu _ (l, _) s I (IZ i n@(Nm _ (U j) _)) = pure (t, uTS j I s) where t=Li i
+mgu _ _ s F (IZ _ n@(Nm _ (U j) _)) = pure (F, uTS j F s)
+mgu _ _ s (IZ _ n@(Nm _ (U j) _)) F = pure (F, uTS j F s)
+mgu f (l, _) s (Li i0) (IZ i1 n@(Nm _ (U j) _)) = do {(i',iS) <- mguI f (iSubst s) i0 i1; let t=σ$Li i' in pure (t, uTS j t$wI iS s)}
+mgu f (l, _) s (IZ i0 n@(Nm _ (U j) _)) (Li i1) = do {(i',iS) <- mguI f (iSubst s) i0 i1; let t=σ$Li i' in pure (t, uTS j t$wI iS s)}
+mgu f _ s t@(IZ (Ix _ i0) n0) (IZ (Ix _ i1) n1) | i0==i1&&n0==n1 = pure (t, s)
+mgu f _ s t@(IZ i0 n0) (IZ i1 n1@(Nm _ (U u) _)) | n0/=n1 = do {(i',iS) <- mguI f (iSubst s) i0 i1; let t=σ$IZ i' n0 in pure (t, uTS u t s)}
+mgu f _ s (Li i0) (Li i1) = do {(i', iS) <- mguI f (iSubst s) i0 i1; pure (σ$Li i', wI iS s)}
 mgu _ _ s t@(TVar n) (TVar n') | n == n' = pure (t, s)
 mgu _ (l, _) s t'@(TVar (Nm _ (U i) _)) t | i `IS.member` occ t = throwError $ OT l t' t
                                           | otherwise = pure (t, uTS i t s)
@@ -462,6 +492,8 @@ mgu f l s (Arr (SVar n) t) t'@Ρ{} = second (scalar n) <$> mgu f l s t t'
 mgu f l s t'@Ρ{} (Arr (SVar n) t) = second (scalar n) <$> mgu f l s t' t
 mgu f l s (Arr (SVar n) t) t'@Li{} = second (scalar n) <$> mgu f l s t t'
 mgu f l s t'@Li{} (Arr (SVar n) t) = second (scalar n) <$> mgu f l s t' t
+mgu f l s (Arr (SVar n) t) t'@IZ{} = second (scalar n) <$> mgu f l s t t'
+mgu f l s t'@IZ{} (Arr (SVar n) t) = second (scalar n) <$> mgu f l s t' t
 mgu f l s (P ts) (P ts') | length ts == length ts' = first P <$> zSt (mguPrep f l) s ts ts'
 -- TODO: rho occurs check
 mgu f l@(lϵ, e) s t@(Ρ n rs) t'@(P ts) | length ts >= fst (IM.findMax rs) && fst (IM.findMin rs) > 0 = first P <$> tS (\sϵ (i, tϵ) -> second (iTS n t') <$> mguPrep f l sϵ (ts!!(i-1)) tϵ) s (IM.toList rs)
@@ -802,14 +834,15 @@ rwSh (Π s) | Just i <- iunroll (rwSh s) = rwI i `Cons` Nil
            | otherwise = Π (rwSh s)
 
 rwArr :: T a -> T a
-rwArr (Arrow t t') = Arrow (rwArr t) (rwArr t')
-rwArr I            = I
-rwArr B            = B
-rwArr F            = F
-rwArr t@Li{}       = t
-rwArr t@TVar{}     = t
-rwArr (P ts)       = P (rwArr<$>ts)
-rwArr (Arr sh t)   | Nil <- rwSh sh = rwArr t
+rwArr (Arrow t t')  = Arrow (rwArr t) (rwArr t')
+rwArr I             = I
+rwArr B             = B
+rwArr F             = F
+rwArr t@Li{}        = t
+rwArr t@TVar{}      = t
+rwArr t@IZ{}        = t
+rwArr (P ts)        = P (rwArr<$>ts)
+rwArr (Arr sh t)    | Nil <- rwSh sh = rwArr t
 rwArr (Arr ixes arr) | (is, Nil) <- unroll (rwSh ixes), Arr sh t <- rwArr arr = Arr (roll sh is) t
 rwArr (Arr sh t) | Arr shϵ t' <- rwArr t = Arr (rwSh$Cat sh shϵ) t'
 rwArr (Arr sh t)   = Arr (rwSh sh) (rwArr t)
@@ -837,6 +870,7 @@ chkE _         = Right ()
 
 checkTy :: T a -> (C, a) -> Either (TyE a) (Maybe (Nm a, C))
 checkTy (TVar n) (c, _)       = pure $ Just(n, c)
+checkTy IZ{} (IsNum, _)       = pure Nothing
 checkTy Li{} (IsNum, _)       = pure Nothing
 checkTy I (IsNum, _)          = pure Nothing
 checkTy F (IsNum, _)          = pure Nothing
@@ -845,9 +879,13 @@ checkTy I (HasBits, _)        = pure Nothing
 checkTy Li{} (HasBits, _)     = pure Nothing
 checkTy B (HasBits, _)        = pure Nothing
 checkTy F (IsOrd, _)          = pure Nothing
+checkTy Li{} (IsOrd, _)       = pure Nothing
+checkTy IZ{} (IsOrd, _)       = pure Nothing
 checkTy I (IsEq, _)           = pure Nothing
 checkTy F (IsEq, _)           = pure Nothing
 checkTy B (IsEq, _)           = pure Nothing
+checkTy Li{} (IsEq, _)        = pure Nothing
+checkTy IZ{} (IsEq, _)        = pure Nothing
 checkTy t (c@IsNum, l)        = Left$ Doesn'tSatisfy l t c
 checkTy t (c@HasBits, l)      = Left$ Doesn'tSatisfy l t c
 checkTy t@Arrow{} (c, l)      = Left$ Doesn'tSatisfy l t c
@@ -873,48 +911,13 @@ tyClosed u e = do
     chkE (eAnn eS) $> (eS, nubOrd scs', i)
 
 tyE :: Subst a -> E a -> TyM a (E (T ()), Subst a)
-tyE s (EApp _ (Builtin _ Re) (ILit _ n)) = do
-    a <- ftv "a"
-    let arrTy = a ~> vV (Ix () (fromInteger n)) a
-    pure (EApp arrTy (Builtin (I ~> arrTy) Re) (ILit I n), s)
-tyE s (EApp _ (EApp _ (EApp _ (Builtin _ FRange) e0) e1) (ILit _ n)) = do
-    (e0',s0) <- tyE s e0; (e1',s1) <- tyE s0 e1
-    let tyE0 = eAnn e0'; tyE1 = eAnn e1'
-        arrTy = vV (Ix () (fromInteger n)) F
-        l0 = eAnn e0; l1 = eAnn e1
-    s0' <- liftU $ mp (l0,e0) s1 F (eAnn e0' $> l0); s1' <- liftU $ mp (l1,e1) s0' F (eAnn e1' $> l1)
-    pure (EApp arrTy (EApp (I ~> arrTy) (EApp (tyE1 ~> I ~> arrTy) (Builtin (tyE0 ~> tyE1 ~> I ~> arrTy) FRange) e0') e1') (ILit I n), s1')
-tyE s (EApp l eϵ@(EApp _ (EApp _ (Builtin _ FRange) e0) e1) n) = do
-    (nA, sϵ) <- tyE s n
-    case aT (void sϵ) $ eAnn nA of
-        iT@(Li ix) -> do
-            (e0',s0) <- tyE sϵ e0; (e1',s1) <- tyE s0 e1
-            let tyE0 = eAnn e0'; tyE1 = eAnn e1'
-                arrTy = vV ix F
-                l0 = eAnn e0; l1 = eAnn e1
-            s0' <- liftU $ mp (l0,e0) s1 F (eAnn e0' $> l0); s1' <- liftU $ mp (l1,e1) s0' F (eAnn e1' $> l1)
-            pure (EApp arrTy (EApp (iT ~> arrTy) (EApp (tyE1 ~> iT ~> arrTy) (Builtin (tyE0 ~> tyE1 ~> iT ~> arrTy) FRange) e0') e1') nA, s1')
-        _ -> do
-            a <- ft "a" l; b <- ft "b" l
-            (eϵ', s0) <- tyE sϵ eϵ
-            let eϵTy = a ~> b
-            s1 <- liftU $ mp (l,eϵ) s0 (eAnn eϵ'$>l) eϵTy
-            s2 <- liftU $ mp (l,n) s1 (eAnn nA$>l) a
-            pure (EApp (void b) eϵ' nA, s2)
-tyE s (EApp _ (EApp _ (EApp _ (Builtin _ Gen) x) f) (ILit _ n)) = do
-    (x',s0) <- tyE s x; (f',s1) <- tyE s0 f
-    let tyX = eAnn x'; tyF = eAnn f'
-        arrTy = vV (Ix () (fromInteger n)) tyX
-        lX = eAnn x; lF = eAnn f
-    s1' <- liftU $ mp (lF, f) s1 ((tyX $> lX) ~> (tyX $> lX)) (tyF $> lF)
-    pure (EApp arrTy (EApp (I ~> arrTy) (EApp (tyF ~> I ~> arrTy) (Builtin (tyX ~> tyF ~> I ~> arrTy) Gen) x') f') (ILit I n), s1')
 tyE s (EApp _ (EApp _ (EApp _ (Builtin _ IRange) (ILit _ b)) (ILit _ e)) (ILit _ si)) = do
     let arrTy = vV (Ix () (fromInteger ((e-b+si) `quot` si))) I
     pure (EApp arrTy (EApp (I ~> arrTy) (EApp (I ~> I ~> arrTy) (Builtin (I ~> I ~> I ~> arrTy) IRange) (ILit I b)) (ILit I e)) (ILit I si), s)
 tyE s (FLit _ x) = pure (FLit F x, s)
 tyE s (BLit _ x) = pure (BLit B x, s)
 tyE s (ILit l m) = do
-    n <- fc "a" l IsNum
+    n <- fn l m
     pure (ILit n m, s)
 tyE s (Builtin l b) = do {(t,sϵ) <- tyB l b ; pure (Builtin t b, sϵ<>s)}
 tyE s (Lam _ nϵ e) = do
@@ -945,7 +948,7 @@ tyE s e@(ALit l es) = do
     a <- ftv "a"
     (es', s') <- tS tyE s es
     let eTys = a : fmap eAnn es'
-        uHere sϵ t t' = mp (l,e) sϵ (t$>l) (t'$>l)
+        uHere sϵ t t' = mp (l,e) RF sϵ (t$>l) (t'$>l)
     ss' <- liftU $ zS uHere s' eTys (tail eTys)
     pure (ALit (vV (Ix () $ length es) a) es', ss')
 tyE s (EApp l e0 e1) = do
@@ -953,14 +956,14 @@ tyE s (EApp l e0 e1) = do
     (e0', s0) <- tyE s e0
     (e1', s1) <- tyE s0 e1
     let e0Ty = a ~> b
-    s2 <- liftU $ mp (l,e0) s1 (eAnn e0'$>l) e0Ty
-    s3 <- liftU $ mp (l,e1) s2 (eAnn e1'$>l) a
+    s2 <- liftU $ mp (l,e0) LF s1 (eAnn e0'$>l) e0Ty
+    s3 <- liftU $ mp (l,e1) RF s2 (eAnn e1'$>l) a
     pure (EApp (void b) e0' e1', s3)
 tyE s (Cond l p e0 e1) = do
     (p',sP) <- tyE s p
     (e0',s0) <- tyE sP e0
     (e1',s1) <- tyE s0 e1
-    sP' <- liftU $ mp (eAnn p,p) s1 B (eAnn p'$>eAnn p); (tB, s0') <- liftU $ mguPrep RF (l,e0) sP' (eAnn e0'$>l) (eAnn e1'$>eAnn e1)
+    sP' <- liftU $ mp (eAnn p,p) RF s1 B (eAnn p'$>eAnn p); (tB, s0') <- liftU $ mguPrep RF (l,e0) sP' (eAnn e0'$>l) (eAnn e1'$>eAnn e1)
     pure (Cond (void tB) p' e0' e1', s0')
 tyE s (Var l n@(Nm _ (U u) _)) = do
     lSt<- gets staEnv

@@ -48,6 +48,7 @@ data T a = Arr (Sh a) (T a)
          | B -- | bool
          | Li (I a)
          | TVar (Nm a) -- | Kind \(*\)
+         | IZ (I a) (Nm a)
          | Arrow (T a) (T a)
          | P [T a]
          | Ρ (Nm a) (IM.IntMap (T a))
@@ -63,6 +64,7 @@ instance PS (T a) where
     ps _ F                      = "float"
     ps _ I                      = "int"
     ps _ (Li i)                 = "int" <> parens (pretty i)
+    ps _ (IZ i _)               = "num" <> parens (pretty i)
     ps _ B                      = "bool"
     ps _ (TVar n)               = pretty n
     ps d (Arrow t0 t1)          = parensp (d>0) (ps 1 t0 <+> "→" <+> ps 0 t1)
