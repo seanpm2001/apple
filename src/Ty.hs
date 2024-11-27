@@ -101,8 +101,11 @@ instance Show (Subst a) where show = show . pretty
 type TyM a = StateT (TySt a) (Either (TyE a))
 type UM a = StateT Int (Either (TyE a))
 
-nI :: a -> UM b (I a)
-nI l = state (\i -> let j=i+1 in (IEVar l (Nm "m" (U j) l), j))
+nI :: a -> UM b (Nm a)
+nI l = state (\i -> let j=i+1 in (Nm "m" (U j) l, j))
+
+nIe :: a -> UM b (I a)
+nIe l = IEVar l <$> nI l
 
 liftU :: UM a x -> TyM a x
 liftU a = do
@@ -274,10 +277,10 @@ mguIPrep f is = mguI f is `on` rwI.(is!>)
 
 mguI :: Focus -> IM.IntMap (I a) -> I a -> I a -> UM a (I a, IM.IntMap (I a))
 mguI _ inp i0@(Ix _ i) (Ix _ j) | i == j = pure (i0, inp)
-mguI RF inp (Ix l _) Ix{} = do {m <- nI l; pure (m, inp)}
+mguI RF inp (Ix l _) Ix{} = do {m <- nIe l; pure (m, inp)}
 mguI _ _ i0@(Ix l _) i1@Ix{} = throwError $ UI l i0 i1
 mguI _ inp i0@(IEVar _ i) (IEVar _ j) | i == j = pure (i0, inp)
-mguI RF inp (IEVar l _) (IEVar _ _) = do {m <- nI l; pure (m, inp)}
+mguI RF inp (IEVar l _) (IEVar _ _) = do {m <- nIe l; pure (m, inp)}
 mguI _ _ i0@(IEVar l _) i1@IEVar{} = throwError $ UI l i0 i1
 mguI _ inp i0@(IVar _ i) (IVar _ j) | i == j = pure (i0, inp)
 mguI _ inp iix@(IVar l (Nm _ (U i) _)) ix | i `IS.member` occI ix = throwError $ OI l iix ix
@@ -303,6 +306,16 @@ mguI LF _ i0@(IEVar l _) i1@Ix{} = throwError $ UI l i0 i1
 mguI LF _ i0@(Ix l _) i1@IEVar{} = throwError $ UI l i0 i1
 mguI _ _ i0@(IEVar l _) i1@StaPlus{} = throwError $ UI l i0 i1 -- TODO: focus?
 mguI _ _ i0@(StaPlus l _ _) i1@IEVar{} = throwError $ UI l i0 i1
+mguI f inp (StaMul l n mi@(Ix l₀ m)) (StaPlus _ i (Ix l₁ j)) = do
+    k <- IVar l <$> nI l
+    (n',s0) <- mguI f inp n (k+:Ix l₀ (c`div`m))
+    (i',s1) <- mguIPrep f s0 i (StaMul l₀ mi k+:Ix l₁ (c-j))
+    pure (StaMul l mi k+:Ix l₀ c, s1)
+  where
+    c=lcm m j
+-- n*m, i+j, (m,j known) then must be divisible by m and >=j
+-- unify to m*k+lcm(m,j)
+-- Then n=k+(lcm(m,j)/m), i=m*k+(lcm(m,j)-j)
 mguI _ _ i0 i1 = error (show (i0,i1))
 
 splitFromLeft :: Int -> [a] -> ([a], [a])
@@ -346,13 +359,13 @@ mgSh f l inp Nil (Cat sh0 sh1) = do
     (_, s') <- mgShPrep f l s Nil sh1
     pure (Nil, s')
 mgSh f l inp sh0@Rev{} sh1@Π{} = do
-    i <- nI l
+    i <- nIe l
     let sh=vx i
     (_, s') <- mgSh f l inp sh sh0
     (_, s'') <- mgShPrep f l s' sh sh1
     pure (sh, s'')
 mgSh f l inp sh0@Π{} sh1@Rev{} = do
-    i <- nI l
+    i <- nIe l
     let sh=vx i
     (_, s') <- mgSh f l inp sh sh0
     (_, s'') <- mgShPrep f l s' sh sh1
@@ -578,8 +591,8 @@ tyB _ Rot = do
     a <- ftv "a"; i <- fti "i"; sh <- fsh "sh"
     pure (I ~> Arr (i `Cons` sh) a ~> Arr (i `Cons` sh) a, mempty)
 tyB _ Cyc = do
-    sh <- fsh "sh"; a <- ftv "a"; i <- fti "i"; n <- ftie
-    pure (Arr (i `Cons` sh) a ~> Li i ~> vV i a, mempty)
+    sh <- fsh "sh"; a <- ftv "a"; i <- fti "i"; n <- fti "n"
+    pure (Arr (i `Cons` sh) a ~> Li n ~> Arr (StaMul() n i `Cons` sh) a, mempty)
 tyB _ HeadM = do
     a <- ftv "a"; i <- fti "i"; sh <- fsh "sh"
     pure (Arr (i `Cons` sh) a ~> Arr sh a, mempty)
