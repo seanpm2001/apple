@@ -27,9 +27,10 @@ digraphs <- 8592
     \ tt 120009
 
 setlocal makeprg=atc\ %
-setlocal errorformat=%Eatc:\ %l:%c:%m
-setlocal errorformat+=atc:\ %l:%c\ %m
-setlocal errorformat+=%Eatc:\ %m\ %trror\ at\ line\ %l\\,\ column\ %c
+setlocal errorformat=%Eatc:\ %f:%l:%c:%m
+setlocal errorformat+=atc:\ %f:%l:%c\ %m
+setlocal errorformat+=%Eatc:\ %f:%m\ %trror\ at\ line\ %l\\,\ column\ %c
+setlocal errorformat+=%Eatc:\ %f:%m\ %trror\ at\ line\ %l\\,\ column\ %c
 
 function! ATCheck()
     exec 'silent make'
