@@ -67,7 +67,7 @@ import           L
 import           Nm
 import           Parser
 import           Parser.Rw
-import           Prettyprinter                    (Doc, Pretty (..), (<+>))
+import           Prettyprinter                    (Doc, Pretty (..))
 import           Prettyprinter.Ext
 import           R.Dfn
 import           R.R

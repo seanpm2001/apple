@@ -206,8 +206,7 @@ executable atc
     build-depends:
         base,
         apple,
-        optparse-applicative >=0.13.0.0,
-        bytestring
+        optparse-applicative >=0.13.0.0
 
 executable writeo
     import:           warn

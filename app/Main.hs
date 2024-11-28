@@ -1,7 +1,5 @@
 module Main (main) where
 
-import           Control.Exception    (throwIO)
-import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Version         as V
 import           Options.Applicative
 import           P
