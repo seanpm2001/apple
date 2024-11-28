@@ -22,11 +22,4 @@ versionMod :: Parser (a -> a)
 versionMod = infoOption (V.showVersion P.version) (short 'V' <> long "version" <> help "Show version")
 
 main :: IO ()
-main = run =<< execParser wrapper
-
-run :: FilePath -> IO ()
-run fpϵ = do
-    contents <- BSL.readFile fpϵ
-    case tyParse contents of
-        Left err -> throwIO err
-        Right{}  -> pure ()
+main = tc =<< execParser wrapper
