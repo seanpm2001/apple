@@ -57,7 +57,7 @@ $sub = [$subscript $digitsubscript]
 @name = ($letter#[Λλ] @follow_char* $sub* | $mathgreek $sub* | $mathlatin $sub* | ∫ | 𝛻 | ∇) [′″‴⁗]?
 
 @exp = e\-?$digit+
-@float = $digit+\.$digit+@exp?
+@float = ($digit+\.$digit+@exp? | $digit+@exp)
 
 tokens :-
 
