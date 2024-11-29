@@ -1,9 +1,9 @@
 module Main (main) where
 
-import qualified Data.Version         as V
+import qualified Data.Version        as V
 import           Options.Applicative
 import           P
-import qualified Paths_apple          as P
+import qualified Paths_apple         as P
 
 fp :: Parser FilePath
 fp = argument str
