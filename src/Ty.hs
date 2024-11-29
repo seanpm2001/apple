@@ -711,6 +711,14 @@ tyB _ (Conv ns) = do
         opTy = Arr (foldr Cons sh nx) a ~> b
         t = Arrow (Arr (foldr Cons sh (zipWith (+:) is nx)) a) (Arr (foldr Cons Nil is) b)
     pure (opTy ~> t, mempty)
+tyB _ (Focus ns) = do
+    sh <- fsh "sh"
+    is <- zipWithM (\_ t -> fti (T.singleton t)) ns ['i'..]
+    a <- ftv "a"; b <- ftv "b"
+    let nx = map (Ix ()) ns
+        opTy = Arr (foldr Cons sh nx) a ~> b
+        t = Arr (foldr Cons sh (zipWith (StaMul ()) nx is)) a ~> Arr (foldr Cons Nil is) b
+    pure (opTy~>t, mempty)
 tyB _ Succ = do
     i <- fti "i"; sh <- fsh "sh"
     a <- ftv "a"; b <- ftv "b"

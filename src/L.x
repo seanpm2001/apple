@@ -142,6 +142,8 @@ tokens :-
         ⋊                        { mkSym MinS }
         "<."                     { mkSym MinS }
         ⨳                        { mkSym Conv }
+        ⦠                        { mkSym Focus }
+        ">@"                     { mkSym Focus }
         "{."                     { mkSym Head }
         "{.?"                    { mkSym HeadM }
         "}."                     { mkSym Last }
@@ -326,7 +328,9 @@ data Sym = Plus | Minus | Fold | Foldl | Percent | Times | Semicolon | Bind | Po
          | LSqBracket | RSqBracket | LBrace | RBrace | IxTimes | LParen | RParen | Lam
          | Dot | Caret | Quot | Zip | Comma | Underscore | QuestionMark | Colon
          | CondSplit | Cor | ArrL | ArrR | SymLog | LBind | PolyBind | LRank | Compose
-         | Arrow | Sig | MaxS | MinS | DIS | Succ | Conv | Access { iat :: !Int }
+         | Arrow | Sig | MaxS | MinS | DIS | Succ
+         | Conv | Focus
+         | Access { iat :: !Int }
          | TSig | Cons | Snoc | Do | Tensor | Transp | PlusPlus | Rotate
          | Last | LastM | Head | HeadM | Tail | TailM | Init | InitM
          | Geq | Gt | Eq | Neq | Leq | Lt
@@ -382,6 +386,7 @@ instance Pretty Sym where
     pretty DIS          = "\\`"
     pretty Succ         = "\\~"
     pretty Conv         = "⨳"
+    pretty Focus        = "⦠"
     pretty (Access i)   = "->" <> pretty i
     pretty Last         = "}."
     pretty LastM        = "}.?"

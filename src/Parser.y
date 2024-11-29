@@ -62,6 +62,7 @@ import Sh
     di { TokSym $$ DIS }
     succ { TokSym $$ L.Succ }
     conv { TokSym $$ L.Conv }
+    focus { TokSym $$ L.Focus }
     last { TokSym $$ L.Last }
     lastM { TokSym $$ L.LastM }
     head { TokSym $$ L.Head }
@@ -241,6 +242,7 @@ BBin :: { E AlexPosn }
      | quot { Builtin $1 Map }
      | di intLit { Builtin $1 (DI (fromInteger $ int $2)) }
      | conv braces(sepBy(intLit,comma)) { Builtin $1 (A.Conv (reverse (fmap (fromInteger.int) $2))) }
+     | focus braces(sepBy(intLit,comma)) { Builtin $1 (A.Focus (reverse (map (fromInteger.int) $2)))  }
      -- FIXME: not necessarily binary operator!!
      | lrank sepBy(R,comma) rbrace { Builtin $1 (Rank (reverse $2)) }
      | succ { Builtin $1 A.Succ }
