@@ -16,9 +16,7 @@ def softmax(x):
 ssoftmax=apple.jit('''
 λxs.
   { m ⟜ (⋉)/* _1 xs; a ⟜ [e:(x-m)]`{0} xs
-  ; sum ← [(+)/x]
-  ; n ⟜ sum`{1} (a::M float)
-  ; |:(([(%x)'y]`{0,1} n a))
+  ; |:((λxs. {s⟜ (+)/xs; (%s)'xs})`{1} (a::M float))
   }
 ''')
 assert (ssoftmax(xs)==softmax(xs)).all()
