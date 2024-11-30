@@ -359,8 +359,8 @@ data Idiom = FoldSOfZip { seedI, opI :: E (T ()), esI :: [E (T ())] }
            deriving (Generic)
 
 instance Pretty Idiom where
-    pretty (FoldSOfZip seed op es) = parens ("foldS-of-zip" <+> pretty seed <+> parens (pretty op) <+> pretty es)
-    pretty (FoldOfZip zop op es)   = parens ("fold-of-zip" <+> parens (pretty zop) <+> parens (pretty op) <+> pretty es)
+    pretty (FoldSOfZip seed op es) = parens ("foldS-of-zip" <+> vsep [pretty seed, parens (pretty op), pretty es])
+    pretty (FoldOfZip zop op es)   = parens ("fold-of-zip" <+> vsep [pretty zop, parens (pretty op), pretty es])
     pretty (FoldGen seed g f n)    = parens ("fold-gen" <+> brackets (pretty seed) <+> parens (pretty g) <+> parens (pretty f) <+> parens (pretty n))
     pretty (AShLit re es)          = parens ("re" <+> hsep (pretty <$> re) <+> "|" <+> pretty es)
 
