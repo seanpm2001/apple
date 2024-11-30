@@ -458,8 +458,8 @@ mgu f l s (Arrow t0 t1) (Arrow t0' t1') = do
 mgu _ _ s I I = pure (I, s)
 mgu _ _ s F F = pure (F, s)
 mgu _ _ s B B = pure (B, s)
-mgu _ _ s t@Li{} I = pure (t, s)
-mgu _ _ s I t@Li{} = pure (t, s)
+mgu _ _ s Li{} I = pure (I, s)
+mgu _ _ s I Li{} = pure (I, s)
 mgu _ _ s (IZ _ (Nm _ (U j) _)) I = pure (I, uTS j I s)
 mgu _ _ s I (IZ _ (Nm _ (U j) _)) = pure (I, uTS j I s)
 mgu _ _ s F (IZ _ (Nm _ (U j) _)) = pure (F, uTS j F s)
@@ -470,6 +470,8 @@ mgu _ _ s t@(IZ (Ix _ i0) n0) (IZ (Ix _ i1) n1) | i0==i1&&n0==n1 = pure (t, s)
 mgu f _ s (IZ i0 n0) (IZ i1 n1@(Nm _ (U u) _)) | n0/=n1 = do {(i',iS) <- mguI f (iSubst s) i0 i1; let t=σ$IZ i' n0 in pure (t, uTS u t$wI iS s)}
 mgu _ _ s (IZ _ n0@(Nm _ (U j) _)) t1@(TVar n1) | n0/=n1 = pure (t1, uTS j t1 s)
 mgu f _ s (Li i0) (Li i1) = do {(i', iS) <- mguI f (iSubst s) i0 i1; pure (σ$Li i', wI iS s)}
+mgu _ _ s Li{} (TVar n1@(Nm _ (U u) _)) = pure (I, uTS u I s)
+mgu _ _ s (TVar n1@(Nm _ (U u) _)) Li{} = pure (I, uTS u I s)
 mgu _ _ s t@(TVar n) (TVar n') | n == n' = pure (t, s)
 mgu _ (l, _) s t'@(TVar (Nm _ (U i) _)) t | i `IS.member` occ t = throwError $ OT l t' t
                                           | otherwise = pure (t, uTS i t s)
