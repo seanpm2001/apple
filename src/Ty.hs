@@ -327,8 +327,8 @@ mguI _ _ i0@(IEVar l _) i1@StaPlus{} = throwError $ UI l i0 i1 -- TODO: focus?
 mguI _ _ i0@(StaPlus l _ _) i1@IEVar{} = throwError $ UI l i0 i1
 mguI f inp (StaMul l n mi@(Ix l₀ m)) (StaPlus _ i (Ix l₁ j)) = do
     k <- IVar l <$> nI l
-    (n',s0) <- mguI f inp n (k+:Ix l₀ (c`div`m))
-    (i',s1) <- mguIPrep f s0 i (StaMul l₀ mi k+:Ix l₁ (c-j))
+    (_,s0) <- mguI f inp n (k+:Ix l₀ (c`div`m))
+    (_,s1) <- mguIPrep f s0 i (StaMul l₀ mi k+:Ix l₁ (c-j))
     pure (StaMul l mi k+:Ix l₀ c, s1)
   where
     c=lcm m j
@@ -470,8 +470,8 @@ mgu _ _ s t@(IZ (Ix _ i0) n0) (IZ (Ix _ i1) n1) | i0==i1&&n0==n1 = pure (t, s)
 mgu f _ s (IZ i0 n0) (IZ i1 n1@(Nm _ (U u) _)) | n0/=n1 = do {(i',iS) <- mguI f (iSubst s) i0 i1; let t=σ$IZ i' n0 in pure (t, uTS u t$wI iS s)}
 mgu _ _ s (IZ _ n0@(Nm _ (U j) _)) t1@(TVar n1) | n0/=n1 = pure (t1, uTS j t1 s)
 mgu f _ s (Li i0) (Li i1) = do {(i', iS) <- mguI f (iSubst s) i0 i1; pure (σ$Li i', wI iS s)}
-mgu _ _ s Li{} (TVar n1@(Nm _ (U u) _)) = pure (I, uTS u I s)
-mgu _ _ s (TVar n1@(Nm _ (U u) _)) Li{} = pure (I, uTS u I s)
+mgu _ _ s Li{} (TVar (Nm _ (U u) _)) = pure (I, uTS u I s)
+mgu _ _ s (TVar (Nm _ (U u) _)) Li{} = pure (I, uTS u I s)
 mgu _ _ s t@(TVar n) (TVar n') | n == n' = pure (t, s)
 mgu _ (l, _) s t'@(TVar (Nm _ (U i) _)) t | i `IS.member` occ t = throwError $ OT l t' t
                                           | otherwise = pure (t, uTS i t s)
