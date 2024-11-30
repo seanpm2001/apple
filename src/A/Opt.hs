@@ -19,9 +19,9 @@ mSz (Ix _ i `Cons` sh) = (i*)<$>mSz sh
 mSz Nil                = Just 1
 mSz _                  = Nothing
 
-ff :: Builtin -> Maybe (Double -> Double -> Double)
-ff Plus = Just (+); ff Times = Just (*); ff Minus = Just (-)
-ff Exp = Just (**); ff _ = Nothing
+ff :: Builtin -> Maybe (Integer -> Integer -> Integer, Double -> Double -> Double)
+ff Plus = Just ((+), (+)); ff Times = Just ((*), (*)); ff Minus = Just ((-), (-))
+ff _ = Nothing
 
 optA :: E (T ()) -> RM (E (T ()))
 optA (ILit F x)            = pure (FLit F (realToFrac x))
@@ -51,6 +51,12 @@ optA (EApp l0 (EApp l1 op@(Builtin l2 Div) e0) e1) = do
         (FLit _ x, FLit _ y) -> FLit l0 (x/y)
         (x, FLit t y)        -> EApp l0 (EApp l1 (Builtin l2 Times) x) (FLit t (1/y))
         _                    -> EApp l0 (EApp l1 op e0') e1'
+optA (EApp l0 (EApp l1 op@(Builtin _ Exp) x) y) = do
+    xO <- optA x
+    yO <- optA y
+    pure $ case (xO, yO) of
+        (FLit _ x', FLit _ y') -> FLit F (x'**y')
+        _                      -> EApp l0 (EApp l1 op xO) yO
 optA (EApp l0 op@(Builtin _ N) e0) = do
     e0' <- optA e0
     pure $ case e0' of
@@ -69,13 +75,12 @@ optA (EApp l0 (EApp l1 op@(Builtin _ Sl) e0) e1) = do
         (ILit _ m, ILit _ n) -> ILit I (m .<<. fromIntegral n)
         _                    -> EApp l0 (EApp l1 op e0') e1'
 optA (Lam l n e) = Lam l n <$> optA e
-optA (EApp l0 (EApp l1 op@(Builtin _ f) x) y) | Just g <- ff f = do
+optA (EApp l0 (EApp l1 op@(Builtin _ f) x) y) | Just (ig, g) <- ff f = do
     xO <- optA x
     yO <- optA y
     pure $ case (xO, yO) of
         (FLit _ x', FLit _ y') -> FLit F (g x' y')
-        (FLit _ x', ILit _ y') -> FLit F (g x' (realToFrac y'))
-        (ILit _ x', FLit _ y') -> FLit F (g (realToFrac x') y')
+        (ILit I x', ILit I y') -> ILit I (ig x' y')
         _                      -> EApp l0 (EApp l1 op xO) yO
 optA (EApp l0 f@(Builtin _ ItoF) x) = do
     x' <- optA x
