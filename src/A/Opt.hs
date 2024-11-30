@@ -34,9 +34,9 @@ optA (Builtin ty Dot)      | Arrow tA (Arrow _ tN) <- ty = do
     let op=Lam n3 x₀ (Lam n2 y₀ (EApp tN (EApp n2 (Builtin n3 Times) (Var tN x₀)) (Var tN y₀)))
         zop=Lam (tN~>tN~>tN~>tN) x (Lam n3 y (Lam n2 z (EApp tN (EApp n2 (Builtin n3 Plus) (Var tN x)) (EApp tN (EApp n2 (Builtin n3 Times) (Var tN y)) (Var tN z)))))
     pure $ Lam ty a (Lam undefined b (Id tN $ FoldOfZip op zop [Var tA a, Var tA b]))
-optA (Builtin ty C)        | Arrow fTy (Arrow gTy xTy@(Arrow tC tD)) <- ty = do
+optA (Builtin ty C)        | Arrow fTy (Arrow gTy@(Arrow _ gC) xTy@(Arrow tC tD)) <- ty = do
     f <- nextU "f" fTy; g <- nextU "g" gTy; x <- nextU "x" tC
-    pure $ Lam ty f (Lam (gTy ~> xTy) g (Lam (tC ~> tD) x (EApp tD (Var fTy f) (EApp undefined (Var gTy g) (Var tC x)))))
+    pure $ Lam ty f (Lam (gTy ~> xTy) g (Lam (tC ~> tD) x (EApp tD (Var fTy f) (EApp gC (Var gTy g) (Var tC x)))))
 optA e@Builtin{}           = pure e
 optA (EApp _ (Builtin _ Size) xs) | Arr sh _ <- eAnn xs, Just sz <- mSz sh = pure $ ILit I (toInteger sz)
 optA (EApp _ (Builtin _ Dim) xs) | Arr (Ix _ i `Cons` _) _ <- eAnn xs = pure $ ILit I (toInteger i)
