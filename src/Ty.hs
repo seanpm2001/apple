@@ -535,6 +535,8 @@ tS f s (t:ts) = do{(tϵ, next) <- f s t; first (tϵ:) <$> tS f next ts}
 vx = (`Cons` Nil)
 vV i = Arr (vx i)
 
+-- TODO: (+) applied to num(n) should be int(i)->int(j)->int(#n)...
+-- Maybe IZ #n a?
 tyNumBinOp :: a -> TyM a (T (), Subst a)
 tyNumBinOp l = do
     n <- fc "a" l IsNum
