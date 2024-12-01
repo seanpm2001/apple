@@ -102,17 +102,6 @@ optA (EApp l0 (EApp _ (Builtin _ Fold) op) (EApp _ (EApp _ (EApp _ (Builtin _ FR
     pure $ Id l0 $ FoldGen start' (Lam (F ~> F) n (EApp F (EApp (F ~> F) (Builtin (F ~> F ~> F) Plus) incrN) (Var F n))) fF nSteps
 optA (EApp l0 (EApp _ (Builtin _ Fold) op) (EApp _ (EApp _ (EApp _ (Builtin _ Gen) seed) f) n)) =
     Id l0 <$> (FoldGen <$> optA seed <*> optA f <*> optA op <*> optA n)
-optA (EApp l0 (EApp _ (EApp _ (Builtin _ ho0@FoldS) op) seed) (EApp _ (EApp _ (Builtin _ Map) f) x))
-    | Arrow dom fCod <- eAnn f
-    , Arrow _ (Arrow _ cod) <- eAnn op = do
-        x' <- optA x
-        x0 <- nextU "x" cod; x1 <- nextU "y" dom
-        opA <- optA op
-        let vx0 = Var cod x0; vx1 = Var dom x1
-            opTy = cod ~> dom ~> cod
-            op' = Lam opTy x0 (Lam (dom ~> cod) x1 (EApp cod (EApp undefined opA vx0) (EApp fCod f vx1)))
-            arrTy = eAnn x'
-        optA (EApp l0 (EApp undefined (EApp (arrTy ~> l0) (Builtin (opTy ~> arrTy ~> l0) ho0) op') seed) x')
 optA (EApp l0 (EApp _ (Builtin _ Succ) f) (EApp _ (EApp _ (Builtin _ Map) g) xs))
     | (Arrow _ (Arrow _ fCod)) <- eAnn f
     , (Arrow gDom _) <- eAnn g = do
@@ -239,6 +228,16 @@ optA (EApp l (EApp t0 (EApp t1 (Builtin bt b@FoldS) op) seed) arr) = do
                     opTy = cod ~> dom0 ~> dom1 ~> cod
                     op' = Lam opTy x0 (Lam undefined x1 (Lam (dom1 ~> cod) x2 (EApp cod (EApp undefined opA vx0) (EApp dom2 (EApp undefined f' vx1) vx2))))
                 pure $ Id l $ FoldSOfZip seed' op' [xs',ys']
+        (EApp _ (EApp _ (Builtin _ Map) f) xs)
+            | Arrow dom fCod <- eAnn f
+            , Arrow _ (Arrow _ cod) <- eAnn op -> do
+                xs' <- optA xs
+                x0 <- nextU "x" cod; x1 <- nextU "y" dom
+                let vx0 = Var cod x0; vx1 = Var dom x1
+                    opTy = cod ~> dom ~> cod
+                    op' = Lam opTy x0 (Lam (dom ~> cod) x1 (EApp cod (EApp undefined opA vx0) (EApp fCod f vx1)))
+                    arrTy = eAnn xs'
+                optA (EApp l (EApp undefined (EApp (arrTy ~> l) (Builtin (opTy ~> arrTy ~> l) FoldS) op') seed) xs')
         _ -> pure (EApp l (EApp t0 (EApp t1 (Builtin bt b) opA) seed') arr')
 optA (EApp t0 (EApp t1 (Builtin bt Fold) op) arr) = do
     arr' <- optA arr
