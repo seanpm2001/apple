@@ -33,3 +33,5 @@ Additionally the following digraphs are provided by Vim:
 ∧   AN
 ∨   OR
 ♭   Mb
+♯   MX
+⊙   0.
