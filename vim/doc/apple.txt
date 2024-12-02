@@ -27,3 +27,9 @@ Additionally the following digraphs are provided by Vim:
 √   RT
 ∘   Ob
 ⋅   .P
+∴   .:
+⌊   7<
+¬   NO
+∧   AN
+∨   OR
+♭   Mb
