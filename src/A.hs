@@ -162,7 +162,7 @@ instance Pretty Builtin where
     pretty Di         = "di."
     pretty RevE       = "~"
     pretty Flat       = "♭"
-    pretty AddDim     = "♮"
+    pretty AddDim     = "♯"
     pretty Xor        = "⊻"
     pretty And        = "∧"
     pretty Or         = "∨"

@@ -188,7 +188,7 @@ tokens :-
         👁️                        { mkSym Eye }
         "eye."                   { mkSym Eye }
         ♭                        { mkSym B }
-        ♮                        { mkSym Sharp }
+        ♯                        { mkSym Sharp }
         ⊻                        { mkSym Xor }
         ∧                        { mkSym And }
         ∨                        { mkSym Or }
@@ -416,7 +416,7 @@ instance Pretty Sym where
     pretty AtDot        = "@."
     pretty Eye          = "👁️"
     pretty B            = "♭"
-    pretty Sharp        = "♮"
+    pretty Sharp        = "♯"
     pretty Xor          = "⊻"
     pretty And          = "∧"
     pretty Or           = "∨"

@@ -240,7 +240,7 @@ langHelp = liftIO $ putStr $ concat
     , lOption "@." "index of" "/." "idiv"
     , lOption "%:" "vector mul" "odd." "parity"
     , lOption "~" "reverse" "¬,⊻,∧,∨" "logical"
-    , lOption "♭" "flatten" "♮" "add dimension"
+    , lOption "♭" "flatten" "♯" "add dimension"
     , lOption "⩪" "indices of" "§, #." "filter"
     , lOption "👁️" "identity matrix" "(i × j)" "dimensions"
     , lOption "gen." "generate" "}:?" "init"
