@@ -128,6 +128,7 @@ import Sh
     intLit { $$@(TokInt _ _) }
     floatLit { $$@(TokFloat _ _) }
     six { $$@(TokIx _ _) }
+    il { $$@(TokAdLit _ _) }
 
     x { TokResVar $$ VarX }
     y { TokResVar $$ VarY }
@@ -288,6 +289,7 @@ E :: { E AlexPosn }
   | E BBin E { EApp (eAnn $1) (EApp (eAnn $3) $2 $1) $3 }
   | parens(E) { Parens (eAnn $1) $1 }
   | larr sepBy(E,comma) rarr { ALit $1 (reverse $2) }
+  | il { let l=loc $1 in ALit l (map (ILit l.fromInteger) (ints $1)) }
   | lam name dot E { A.Lam $1 $2 $4 }
   | lam tupled(name) dot E {% bindΠ $1 (reverse (snd $2)) $4 }
   | tupled(E) { Tup (fst $1) (reverse (snd $1)) }

@@ -265,6 +265,8 @@ tokens :-
         ⅝                        { mkFloat 0.625 }
         ⅞                        { mkFloat 0.875 }
 
+        𝔸$digit+                 { tok (\p s -> alex $ TokAdLit p (ad $ BSL.drop 4 s)) }
+
         @float                   { tok (\p s -> alex $ TokFloat p (read $ ASCII.unpack s)) }
         _@float                  { tok (\p s -> alex $ TokFloat p (negate $ read $ ASCII.unpack $ BSL.tail s)) }
 
@@ -273,6 +275,9 @@ tokens :-
     }
 
 {
+
+ad :: BSL.ByteString -> [Integer]
+ad = map (fromIntegral.subtract 48) . BSL.unpack
 
 alex :: a -> Alex a
 alex = pure
@@ -490,6 +495,7 @@ data Tok = EOF { loc :: AlexPosn }
          | TokResVar { loc :: AlexPosn, _var :: !Var }
          | TokInt { loc :: AlexPosn, int :: !Integer }
          | TokFloat { loc :: AlexPosn, float :: !Double }
+         | TokAdLit { loc :: AlexPosn, ints :: [Integer] }
          deriving (Generic, NFData)
 
 instance Pretty Tok where
@@ -501,6 +507,7 @@ instance Pretty Tok where
     pretty (TokResVar _ v) = "reserved variable" <+> squotes (pretty v)
     pretty (TokFloat _ f)  = pretty f
     pretty (TokIx _ i)     = pretty (pSubscript i)
+    pretty (TokAdLit _ is) = "𝔸" <> foldMap pretty is
 
 pSubscript :: Int -> T.Text
 pSubscript i =
