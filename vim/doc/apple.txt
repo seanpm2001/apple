@@ -20,6 +20,7 @@ The Vim plugin for Apple provides the following |digraphs|:
 ⍉   o\
 ₒ   o.
 𝓉   tt
+𝔸   AA
 
 Additionally the following digraphs are provided by Vim:
 
