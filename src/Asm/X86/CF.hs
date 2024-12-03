@@ -3,7 +3,7 @@
 module Asm.X86.CF ( mkControlFlow
                   , expand, udd
                   , uses, defs
-                  , defsF
+                  , usesF, defsF
                   ) where
 
 import           Asm.BB

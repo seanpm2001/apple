@@ -114,6 +114,7 @@ library
         Asm.X86.Frame
         Asm.X86.P
         Asm.X86.Sp
+        Asm.X86.SpX
         Asm.X86.Trans
         Asm.Aarch64
         Asm.Aarch64.B

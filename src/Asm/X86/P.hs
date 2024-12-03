@@ -6,6 +6,7 @@ import           Asm.LI
 import           Asm.X86
 import           Asm.X86.Frame
 import           Asm.X86.Sp
+import           Asm.X86.SpX
 import           Data.Int      (Int64)
 import qualified Data.IntMap   as IM
 import qualified Data.Set      as S
@@ -39,6 +40,9 @@ gallocOn u = go u 16 pres True
                         (Right regs, Right fregs) -> let saa = saI$8*fromIntegral offs; saaP = if i then init else (++[IAddRI () SP saa]).init.(ISubRI () SP saa:).(ISubRI () BP saa:) in (regs, fregs, saaP isns)
                         (Left s, Right fregs) ->
                             let (uϵ', offs', isns') = spill uϵ offs s isns
+                            in go uϵ' offs' (IM.insert (-16) Rbp pres') False isns'
+                        (Right regs, Left x) ->
+                            let (uϵ', offs', isns') = spillX uϵ offs x isns
                             in go uϵ' offs' (IM.insert (-16) Rbp pres') False isns'
                     regsM = alloc aIsns ((if i then (++[Rbp]) else id) [Rcx .. Rax]) (IM.keysSet pres') pres'
                     fregsM = allocF aFIsns [XMM1 .. XMM15] (IM.keysSet preFs) preFs
