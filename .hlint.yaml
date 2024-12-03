@@ -8,7 +8,7 @@
 - fixity: infixl 7 \-
 - fixity: infixr 0 ~>
 - fixity: infixl 4 $>
-- fixity: infixl 6 +:
+- fixity: "infixl 6 +:"
 - fixity: infix 9 +=
 - fixity: infix 9 :=
 - fixity: infixr 6 <#>
