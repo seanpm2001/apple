@@ -23,7 +23,7 @@ endif
 all: apple.so
 
 install: apple.so
-	cp $^ $$(python3 -m site --user-site)
+	cp $^ $$(python$(PY_VER) -m site --user-site)
 
 # cdeps applemodule.c | ja "[x+' '+y]|> \$0"
 
