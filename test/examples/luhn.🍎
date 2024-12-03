@@ -1,6 +1,6 @@
 -- 16-digit for credit card
 λxs.
   { digitSum ← [?x>10,.x-9,.x]
-  ; t ← (+)/ [digitSum (x*y)]`(~(}:xs)) (}: (cyc. 𝔸21 8))
+  ; t ← (+)/ [digitSum (x*y)]`(~(}:xs)) (}: (𝔸21⊙8))
   ; 10-t|10=}.xs
   }
