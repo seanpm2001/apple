@@ -209,6 +209,7 @@ I :: { I AlexPosn }
   : intLit { Ix (loc $1) (fromInteger $ int $1) }
   | name { IVar (Nm.loc $1) $1 }
   | I plus I { StaPlus $2 $1 $3 }
+  | I times I { StaMul $2 $1 $3 }
 
 Sh :: { Sh AlexPosn }
    : nil { Nil }
