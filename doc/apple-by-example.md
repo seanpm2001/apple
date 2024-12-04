@@ -569,7 +569,7 @@ In Apple, we can write:
 λa.λb. (-)`((*)`(1⊖a) (_1⊖b)) ((*)`(_1⊖a) (1⊖b))
 ```
 
-This uses zips and rotations (no indices are mentioned); it is a new view of the problem.
+This uses zips and rotations (no indices are mentioned); it is a new perspective on the problem.
 
 ## Linear Regression
 
