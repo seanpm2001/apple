@@ -16,11 +16,12 @@ The Vim plugin for Apple provides the following |digraphs|:
 ℝ   rr
 ⟨   <<
 ⟩   >>
-⅟   1%
 ⍉   o\
 ₒ   o.
-𝓉   tt
 𝔸   AA
+⧺   ++
+𝓉   tt
+⅟   1%
 
 Additionally the following digraphs are provided by Vim:
 
@@ -36,3 +37,4 @@ Additionally the following digraphs are provided by Vim:
 ♭   Mb
 ♯   MX
 ⊙   0.
+§   SE
