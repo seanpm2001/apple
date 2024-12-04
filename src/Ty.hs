@@ -10,7 +10,7 @@ module Ty ( TyE
 import           A
 import           Control.DeepSeq                  (NFData (rnf))
 import           Control.Exception                (Exception, throw)
-import           Control.Monad                    (zipWithM)
+import           Control.Monad                    (when, zipWithM)
 import           Control.Monad.Except             (liftEither, throwError)
 import           Control.Monad.Trans.State.Strict (StateT (runStateT), gets, modify, state)
 import           Data.Bifunctor                   (first, second)
@@ -55,6 +55,7 @@ data TyE a = IllScoped a !(Nm a)
            | MatchShFailed !(Sh a) !(Sh a)
            | MatchIFailed !Focus !(I a) !(I a)
            | Doesn'tSatisfy a (T a) !C
+           | NegIx a Int
            deriving (Generic)
 
 instance Semigroup (Subst a) where
@@ -81,6 +82,7 @@ instance Pretty a => Pretty (TyE a) where
     pretty (MatchShFailed sh sh')  = "Failed to match" <+> squotes (pretty sh) <+> "against shape" <+> squotes (pretty sh')
     pretty (MatchIFailed f i i')   = pretty f <+> "Failed to match" <+> squotes (pretty i) <+> "against index" <+> squotes (pretty i')
     pretty (Doesn'tSatisfy l ty c) = located l$ squotes (pretty ty) <+> "is not a member of class" <+> pretty c
+    pretty (NegIx l i)             = located l$ "negative index" <+> pretty i
 
 instance (Pretty a) => Show (TyE a) where
     show = show . pretty
@@ -926,8 +928,10 @@ tyClosed u e = do
     chkE (eAnn eS) $> (eS, nubOrd scs', i)
 
 tyE :: Subst a -> E a -> TyM a (E (T ()), Subst a)
-tyE s (EApp _ (EApp _ (EApp _ (Builtin _ IRange) (ILit _ b)) (ILit _ e)) (ILit _ si)) = do
-    let arrTy = vV (Ix () (fromInteger ((e-b+si) `quot` si))) I
+tyE s (EApp _ (EApp _ (EApp _ (Builtin l IRange) (ILit _ b)) (ILit _ e)) (ILit _ si)) = do
+    let n = fromInteger ((e-b+si) `quot` si)
+    when (n<0) $ throwError (NegIx l n)
+    let arrTy = vV (Ix () n) I
     pure (EApp arrTy (EApp (I ~> arrTy) (EApp (I ~> I ~> arrTy) (Builtin (I ~> I ~> I ~> arrTy) IRange) (ILit I b)) (ILit I e)) (ILit I si), s)
 tyE s (FLit _ x) = pure (FLit F x, s)
 tyE s (BLit _ x) = pure (BLit B x, s)
