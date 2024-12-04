@@ -557,6 +557,20 @@ In the REPL, one can use `⏱` in place of `:bench`, i.e.
 
 # Examples
 
+## Cross Product
+
+The cross product of two vectors $(a_1,a_2,a_3)$, $(b_1,b_2,b_3) \in \mathbb{R}^3$ is the vector $\in\mathbb{R}^3$
+
+$$(a_2b_3-a_3b2, a_3b1-a_1b3,a_1b_2-a_2b_1)$$
+
+In Apple, we can write:
+
+```
+λa.λb. (-)`((*)`(1⊖a) (_1⊖b)) ((*)`(_1⊖a) (1⊖b))
+```
+
+This uses zips and rotations (no indices are mentioned); it is a new view of the problem.
+
 ## Linear Regression
 
 ```
