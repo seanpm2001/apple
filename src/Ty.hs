@@ -340,6 +340,9 @@ mguI f inp (StaMul l n mi@(Ix l₀ m)) (StaPlus _ i (Ix l₁ j)) = do
 mguI f inp n@(StaMul _ _ Ix{}) (StaPlus l1 i@Ix{} j) = mguI f inp n (StaPlus l1 j i)
 mguI f inp (StaMul l0 n@Ix{} m) i@(StaPlus _ _ Ix{}) = mguI f inp (StaMul l0 m n) i
 mguI f inp (StaMul l0 n@Ix{} m) (StaPlus l1 i@Ix{} j) = mguI f inp (StaMul l0 m n) (StaPlus l1 j i)
+mguI f inp (StaMul l (Ix _ m) j) (Ix _ n) | (k,0) <- n `quotRem` m = mguI f inp j (Ix l k)
+mguI f inp (StaMul l i (Ix _ m)) (Ix _ n) | (k,0) <- n `quotRem` m = mguI f inp i (Ix l k)
+mguI f inp i0@Ix{} i1@StaMul{} = mguI f inp i1 i0
 mguI _ _ i0 i1 = error (show (i0,i1))
 
 splitFromLeft :: Int -> [a] -> ([a], [a])
