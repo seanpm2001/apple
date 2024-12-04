@@ -13,6 +13,7 @@
   * Functions report that they are not a member of typeclasses
   * Tie up various cases in typechecker (no longer bail out/crash)
   * Builtins (`frange`, `irange`, etc.) in REPL compleitions 
+  * No longer segfault when `irange` is specified backwards
 
 # 0.3.0.0
 
