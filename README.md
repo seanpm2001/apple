@@ -8,8 +8,7 @@ The compiler will bail out with arcane error messages rather than
 produce an incorrect result, except that the Python/R extension modules do not
 enforce type safety and thus may mysteriously segfault or produce unpredictable corrupt results.
 
-Spilling (during register allocation) is not implemented for Arm. Also
-floating-point registers aren't spilled on x86.
+Spilling (during register allocation) is not implemented for Arm.
 
 ## Compiler-As-a-Library
 
