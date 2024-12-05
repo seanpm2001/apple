@@ -14,6 +14,7 @@
   * Tie up various cases in typechecker (no longer bail out/crash)
   * Builtins (`frange`, `irange`, etc.) in REPL compleitions 
   * No longer segfault when `irange` is specified backwards
+  * Store functions in REPL
 
 # 0.3.0.0
 
