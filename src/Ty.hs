@@ -644,8 +644,8 @@ tyB _ HeadM = do
     a <- ftv "a"; i <- fti "i"; sh <- fsh "sh"
     pure (Arr (i `Cons` sh) a ~> Arr sh a, mempty)
 tyB _ Re = do
-    a <- ftv "a"; n <- ftie
-    pure (I ~> a ~> vV n a, mempty)
+    a <- ftv "a"; n <- fti "n"
+    pure (Li n ~> a ~> vV n a, mempty)
 tyB _ FRange = do {n <- fti "n"; pure (F ~> F ~> Li n ~> vV n F, mempty)}
 tyB _ Fib = do
     n <- ftie; a <- ftv "a"
