@@ -85,7 +85,7 @@ runRepl x = do
     flip evalStateT initSt $ runInputT settings x
 
 appleCompletions :: CompletionFunc (StateT Env IO)
-appleCompletions (":","")         = pure (":", cyclicSimple ["help", "h", "ty", "quit", "q", "quickcheck", "qc", "list", "ann", "bench", "y", "yank"])
+appleCompletions (":","")         = pure (":", cyclicSimple ["help", "h", "ty", "quit", "q", "quickcheck", "qc", "list", "ann", "bench", "y", "yank", "st", "store"])
 appleCompletions ("i:", "")       = pure ("i:", cyclicSimple ["r", "nspect", ""])
 appleCompletions ("ri:", "")      = pure ("ri:", cyclicSimple [""])
 appleCompletions ("c:", "")       = pure ("c:", cyclicSimple ["mm", "ompile"])
@@ -114,6 +114,11 @@ appleCompletions ("y:", "")       = pure ("y:", cyclicSimple ["ank", ""])
 appleCompletions ("ay:", "")      = pure ("ay:", cyclicSimple ["nk"])
 appleCompletions ("nay:", "")     = pure ("nay:", cyclicSimple ["k"])
 appleCompletions ("knay:", "")    = pure ("knay:", cyclicSimple [""])
+appleCompletions ("s:", "")       = pure ("s:", cyclicSimple ["tore", "t"])
+appleCompletions ("ts:", "")      = pure ("ts:", cyclicSimple ["ore", ""])
+appleCompletions ("ots:", "")     = pure ("ots:", cyclicSimple ["re"])
+appleCompletions ("rots:", "")    = pure ("rots:", cyclicSimple ["e"])
+appleCompletions ("erots:", "")   = pure ("erots:", cyclicSimple [""])
 appleCompletions ("d:", "")       = pure ("d:", [simpleCompletion "isasm", simpleCompletion "elete"])
 appleCompletions ("id:", "")      = pure ("id:", [simpleCompletion "sasm"])
 appleCompletions ("sid:", "")     = pure ("sid:", [simpleCompletion "asm"])
@@ -182,6 +187,8 @@ loop = do
         Just (":qc":e)         -> qc (unwords e) *> loop
         Just (":quickcheck":e) -> qc (unwords e) *> loop
         Just (":delete":[n])   -> del n *> loop
+        Just (":st":n:e)       -> eCtx n (ubs$unwords e) *> loop
+        Just (":store":n:e)    -> eCtx n (ubs$unwords e) *> loop
         Just e                 -> printExpr (unwords e) *> loop
         Nothing                -> pure ()
 
@@ -199,13 +206,14 @@ graph s = liftIO $ case dumpX86Ass (ubs s) of
 showHelp :: Repl AlexPosn ()
 showHelp = liftIO $ putStr $ concat
     [ helpOption ":help, :h" "" "Show this help"
+    , helpOption ":yank, :y" "<fn> <file>" "Read file"
+    , helpOption ":store, :st" "<name> <expression>" "Add to environment"
     , helpOption ":ty" "<expression>" "Display the type of an expression"
     , helpOption ":ann" "<expression>" "Annotate with types"
-    , helpOption ":bench, :b" "<expression>" "Benchmark an expression"
     , helpOption ":list" "" "List all names that are in scope"
+    , helpOption ":bench, :b" "<expression>" "Benchmark an expression"
     , helpOption ":qc" "<proposition>" "Property test"
     , helpOption ":quit, :q" "" "Quit REPL"
-    , helpOption ":yank, :y" "<fn> <file>" "Read file"
     , helpOption ":delete" "<name>" "Delete from REPL environment"
     , helpOption "\\l" "" "Reference card"
     -- TODO: dump debug state
@@ -356,21 +364,23 @@ inspect s = do
                             _ -> pErr ("only arrays can be inspected." :: T.Text)
         where bs = ubs s
 
+eCtx :: String -> BSL.ByteString -> Repl AlexPosn ()
+eCtx f bs = do
+    st <- lg _lex
+    case tyParse bs of
+        Left err -> pErr err
+        Right (_,i) ->
+            let (st', n) = newIdent (AlexPn 0 0 0) (T.pack f) (setM i st)
+                x' = parseE st bs
+            in lift $ do {modify (aEe n x'); modify (setL st')}
+    where setM i' (_, mm, im) = (i', mm, im)
+
 iCtx :: String -> String -> Repl AlexPosn ()
 iCtx f fp = do
     p <- liftIO $ doesFileExist fp
     if not p
         then liftIO $ putStrLn "file does not exist."
-        else do
-            st <- lg _lex
-            bs <- liftIO $ BSL.readFile fp
-            case tyParseCtx st bs of
-                Left err -> pErr err
-                Right (_,i) ->
-                    let (st', n) = newIdent (AlexPn 0 0 0) (T.pack f) (setM i st)
-                        x' = parseE st' bs
-                    in lift $ do {modify (aEe n x'); modify (setL st')}
-    where setM i' (_, mm, im) = (i', mm, im)
+        else do {bs <- liftIO $ BSL.readFile fp; eCtx f bs}
 
 benchC :: String -> Repl AlexPosn ()
 benchC s = case tyParse bs of
