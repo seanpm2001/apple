@@ -260,6 +260,9 @@ helpOption cmd args desc =
 ubs :: String -> BSL.ByteString
 ubs = encodeUtf8 . TL.pack
 
+replEPrint x = liftIO $ case x of
+    Left err -> putDocLn (pretty err); Right d  -> putDocLn d
+
 disasm :: String -> Repl AlexPosn ()
 disasm s = do
     st <- lg _lex
@@ -281,9 +284,7 @@ cR s = do
         Left err -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
-            liftIO $ case eDumpC i eC of
-                Left err -> putDocLn (pretty err)
-                Right d  -> putDocLn d
+            replEPrint $ eDumpC i eC
 
 irR :: String -> Repl AlexPosn ()
 irR s = do
@@ -292,9 +293,7 @@ irR s = do
         Left err -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
-            liftIO $ case eDumpIR i eC of
-                Left err -> putDocLn (pretty err)
-                Right d  -> putDocLn d
+            replEPrint $ eDumpIR i eC
 
 dumpAsm :: String -> Repl AlexPosn ()
 dumpAsm s = do
@@ -305,9 +304,7 @@ dumpAsm s = do
             eC <- eRepl eP
             a <- lg _arch
             let dump = case a of {X64 -> eDumpX86; AArch64{} -> eDumpAarch64}
-            liftIO $ case dump i eC of
-                Left err -> putDocLn (pretty err)
-                Right d  -> putDocLn d
+            replEPrint $ dump i eC
 
 tyExprR :: String -> Repl AlexPosn ()
 tyExprR s = do
@@ -316,9 +313,7 @@ tyExprR s = do
         Left err -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
-            liftIO $ case tyClosed i eC of
-                Left err      -> pErr err
-                Right (e,c,_) -> putDocLn (prettyC (eAnn e, c))
+            replEPrint $ (\(e,c,_) -> prettyC (eAnn e, c)) <$> tyClosed i eC
 
 annR :: String -> Repl AlexPosn ()
 annR s = do
@@ -327,12 +322,9 @@ annR s = do
         Left err    -> pErr err
         Right (eP, i) -> do
             eC <- eRepl eP
-            liftIO $ case tyClosed i eC of
-                Left err      -> pErr err
-                Right (e,_,_) -> putDocLn (prettyTyped e)
+            replEPrint $ (\(e,_,_) -> prettyTyped e) <$> tyClosed i eC
 
 freeAsm (sz, fp, mp) = freeFunPtr sz fp -- *> traverse_ free mp
-
 
 dbgAB :: T b -> U a -> IO TL.Text
 dbgAB t p = do
