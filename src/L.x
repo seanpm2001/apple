@@ -116,6 +116,7 @@ tokens :-
         λ                        { mkSym Lam }
         \\                       { mkSym Lam }
         "\`"                     { mkSym DIS }
+        ⑄                        { mkSym DIS }
         "\~"                     { mkSym Succ }
         "."                      { mkSym Dot }
         ";"                      { mkSym Semicolon }

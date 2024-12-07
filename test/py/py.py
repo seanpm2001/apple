@@ -3,7 +3,7 @@ import numpy as np;import apple
 d=apple.jit("λxs. ⸎n ⟜ 𝓉 xs; }:((*)`(𝒻 (ℝn-1) 0 n) xs)")
 assert (d(np.array([1.,2,1]))==np.array([2.,2])).all()
 
-moving_avg=apple.jit('([((+)/x)%(ℝ(:x))]\\`7)')
+moving_avg=apple.jit('([(+)/x%ℝ(:x)]⑄7)')
 assert repr(moving_avg)=='<fn : Vec (i + 7) float → Vec i float>'
 assert (moving_avg(np.arange(0.,10))==np.array([3,4,5,6])).all()
 
