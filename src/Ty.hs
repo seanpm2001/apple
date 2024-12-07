@@ -479,6 +479,8 @@ mgu f _ s (Li i0) (Li i1) = do {(i', iS) <- mguI f (iSubst s) i0 i1; pure (σ$Li
 mgu _ _ s Li{} (TVar (Nm _ (U u) _)) = pure (I, uTS u I s)
 mgu _ _ s (TVar (Nm _ (U u) _)) Li{} = pure (I, uTS u I s)
 mgu _ _ s t@(TVar n) (TVar n') | n == n' = pure (t, s)
+mgu _ _ s t@(TVar n) (Arr (SVar i) (TVar n')) | n'==n = pure (t, scalar i s)
+mgu _ _ s (Arr (SVar i) t@(TVar n)) (TVar n') | n'==n = pure (t, scalar i s)
 mgu _ (l, _) s t'@(TVar (Nm _ (U i) _)) t | i `IS.member` occ t = throwError $ OT l t' t
                                           | otherwise = pure (t, uTS i t s)
 mgu _ (l, _) s t t'@(TVar (Nm _ (U i) _)) | i `IS.member` occ t = throwError $ OT l t' t
