@@ -325,7 +325,9 @@ mguI f inp (StaMul l i0 i1) (StaMul _ j0 j1) = do
     pure (StaMul l k m, s')
 mguI LF _ i0@(IEVar l _) i1@Ix{} = throwError $ UI l i0 i1
 mguI LF _ i0@(Ix l _) i1@IEVar{} = throwError $ UI l i0 i1
-mguI _ _ i0@(IEVar l _) i1@StaPlus{} = throwError $ UI l i0 i1 -- TODO: focus?
+mguI RF inp (IEVar l (Nm _ (U i) _)) j@StaPlus{} | i `IS.notMember` occI j = do {m <- nIe l; pure (m, inp)}
+mguI RF inp i@StaPlus{} j@IEVar{} = mguI RF inp j i
+mguI _ _ i0@(IEVar l _) i1@StaPlus{} = throwError $ UI l i0 i1
 mguI _ _ i0@(StaPlus l _ _) i1@IEVar{} = throwError $ UI l i0 i1
 mguI f inp (StaMul l n mi@(Ix l₀ m)) (StaPlus _ i (Ix l₁ j)) = do
     k <- IVar l <$> nI l
