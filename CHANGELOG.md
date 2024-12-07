@@ -15,6 +15,7 @@
   * Builtins (`frange`, `irange`, etc.) in REPL compleitions 
   * No longer segfault when `irange` is specified backwards
   * Store functions in REPL
+  * Fix bug in parsing curried binary operators
 
 # 0.3.0.0
 
