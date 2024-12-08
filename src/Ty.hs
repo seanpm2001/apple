@@ -26,6 +26,7 @@ import           Data.Typeable                    (Typeable)
 import           GHC.Generics                     (Generic)
 import           Nm
 import           Nm.IntMap
+import qualified Nm.IntSet                        as Nm
 import           Prettyprinter                    (Doc, Pretty (..), hardline, indent, squotes, (<+>))
 import           Prettyprinter.Ext
 import           Q
@@ -427,31 +428,31 @@ mp :: (a, E a) -> Focus -> Subst a -> T a -> T a -> UM a (Subst a)
 mp l f s t0 t1 = snd <$> mguPrep f l s t0 t1
 
 occSh :: Sh a -> IS.IntSet
-occSh (SVar (Nm _ (U i) _)) = IS.singleton i
-occSh (Cat sh0 sh1)         = occSh sh0 <> occSh sh1
-occSh (_ `Cons` sh)         = occSh sh
-occSh Nil{}                 = IS.empty
-occSh (Rev sh)              = occSh sh
-occSh (Π sh)                = occSh sh
+occSh (SVar sv)     = Nm.singleton sv
+occSh (Cat sh0 sh1) = occSh sh0 <> occSh sh1
+occSh (_ `Cons` sh) = occSh sh
+occSh Nil{}         = IS.empty
+occSh (Rev sh)      = occSh sh
+occSh (Π sh)        = occSh sh
 
 occI :: I a -> IS.IntSet
-occI Ix{}                    = IS.empty
-occI (IVar _ (Nm _ (U i) _)) = IS.singleton i
-occI (StaPlus _ i j)         = occI i <> occI j
-occI (StaMul _ i j)          = occI i <> occI j
-occI IEVar{}                 = IS.empty
+occI Ix{}            = IS.empty
+occI (IVar _ n)      = Nm.singleton n
+occI (StaPlus _ i j) = occI i <> occI j
+occI (StaMul _ i j)  = occI i <> occI j
+occI IEVar{}         = IS.empty
 
 occ :: T a -> IS.IntSet
-occ (TVar (Nm _ (U i) _)) = IS.singleton i
-occ (IZ _ (Nm _ (U i) _)) = IS.singleton i
-occ (Arrow t t')          = occ t <> occ t'
-occ (Arr _ a)             = occ a -- shouldn't need shape?
-occ I                     = IS.empty
-occ F                     = IS.empty
-occ B                     = IS.empty
-occ Li{}                  = IS.empty
-occ (P ts)                = occ @<> ts
-occ (Ρ (Nm _ (U i) _) rs) = IS.insert i $ occ @<> rs
+occ (TVar n)     = Nm.singleton n
+occ (IZ _ n)     = Nm.singleton n
+occ (Arrow t t') = occ t <> occ t'
+occ (Arr _ a)    = occ a -- shouldn't need shape?
+occ I            = IS.empty
+occ F            = IS.empty
+occ B            = IS.empty
+occ Li{}         = IS.empty
+occ (P ts)       = occ @<> ts
+occ (Ρ n rs)     = Nm.insert n $ occ @<> rs
 
 scalar sv = mapShSubst (insert sv Nil)
 
