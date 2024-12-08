@@ -383,6 +383,7 @@ data E a = ALit { eAnn :: a, arrLit :: [E a] } -- TODO: include shape?
          | FLit { eAnn :: a, eFLit :: !Double }
          | BLit { eAnn :: a, eBLit :: !Bool }
          | Cond { eAnn :: a, prop, ifBranch, elseBranch :: E a }
+         | Tup { eAnn :: a, eEs :: [E a] }
          | Let { eAnn :: a, eBnd :: (Nm a, E a), eIn :: E a }
          | Def { eAnn :: a, eBnd :: (Nm a, E a), eIn :: E a }
          | LLet { eAnn :: a, eBnd :: (Nm a, E a), eIn :: E a }
@@ -390,7 +391,6 @@ data E a = ALit { eAnn :: a, arrLit :: [E a] } -- TODO: include shape?
          | ResVar { eAnn :: a, eXY :: ResVar }
          | Parens { eAnn :: a, eExp :: E a }
          | Ann { eAnn :: a, eEe :: E a, eTy :: T a }
-         | Tup { eAnn :: a, eEs :: [E a] }
          | Id { eAnn :: a, eIdiom :: Idiom }
          deriving (Functor, Generic)
 
