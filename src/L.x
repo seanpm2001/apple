@@ -229,6 +229,7 @@ tokens :-
         Arr                      { mkB BuiltinArr }
         Vec                      { mkB BuiltinVec }
         M                        { mkB BuiltinM }
+        𝟘                        { mkB BuiltinInt }
         float                    { mkB BuiltinFloat }
         int                      { mkB BuiltinInt }
         bool                     { mkB BuiltinBool }
