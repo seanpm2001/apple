@@ -46,6 +46,7 @@ import Sh
     polybind { TokSym $$ PolyBind }
     semicolon { TokSym $$ Semicolon }
     comma { TokSym $$ Comma }
+    mmap { TokSym $$ MMap }
     therefore { TokSym $$ Therefore }
     underscore { TokSym $$ Underscore }
     question { TokSym $$ QuestionMark }
@@ -170,7 +171,7 @@ import Sh
     odd { TokB $$ BuiltinOdd }
     abs { TokB $$ BuiltinAbs }
 
-%right semicolon
+%right semicolon mmap
 %nonassoc leq geq gt lt neq eq
 
 %%
@@ -292,6 +293,7 @@ E :: { E AlexPosn }
   | larr sepBy(E,comma) rarr { ALit $1 (reverse $2) }
   | il { let l=loc $1 in ALit l (map (ILit l.fromInteger) (ints $1)) }
   | lam name dot E { A.Lam $1 $2 $4 }
+  | name mmap E { A.Lam $2 $1 $3 }
   | lam tupled(name) dot E {% bindΠ $1 (reverse (snd $2)) $4 }
   | tupled(E) { Tup (fst $1) (reverse (snd $1)) }
   | lbrace many(flipSeq(B,semicolon)) E rbrace { mkLet $1 (reverse $2) $3 }

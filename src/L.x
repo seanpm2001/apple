@@ -119,6 +119,7 @@ tokens :-
         ⑄                        { mkSym DIS }
         "\~"                     { mkSym Succ }
         "."                      { mkSym Dot }
+        ↦                        { mkSym MMap }
         ";"                      { mkSym Semicolon }
         :                        { mkSym Colon }
         "←"                      { mkSym Bind }
@@ -333,7 +334,7 @@ alexEOF = EOF <$> get_pos
 
 data Sym = Plus | Minus | Fold | Foldl | Percent | Times | Semicolon | Bind | Pow
          | LSqBracket | RSqBracket | LBrace | RBrace | IxTimes | LParen | RParen | Lam
-         | Dot | Caret | Quot | Zip | Comma | Underscore | QuestionMark | Colon
+         | MMap | Dot | Caret | Quot | Zip | Comma | Underscore | QuestionMark | Colon
          | CondSplit | Cor | ArrL | ArrR | SymLog | LBind | PolyBind | LRank | Compose
          | Arrow | Sig | MaxS | MinS | DIS | Succ
          | Conv | Focus
@@ -368,6 +369,7 @@ instance Pretty Sym where
     pretty LParen       = "("
     pretty RParen       = ")"
     pretty Lam          = "λ"
+    pretty MMap         = "↦"
     pretty Dot          = "."
     pretty Dp           = "⋅"
     pretty Caret        = "^"
