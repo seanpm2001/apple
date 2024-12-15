@@ -231,6 +231,7 @@ tokens :-
         Vec                      { mkB BuiltinVec }
         M                        { mkB BuiltinM }
         𝟘                        { mkB BuiltinInt }
+        𝞈                        { mkB BuiltinFloat }
         float                    { mkB BuiltinFloat }
         int                      { mkB BuiltinInt }
         bool                     { mkB BuiltinBool }
