@@ -1,0 +1,2 @@
+-- https://mathworld.wolfram.com/GrayCode.html
+[x⊻(x>>1)]
