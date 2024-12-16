@@ -306,6 +306,8 @@ mguI RF inp (Ix l _) Ix{} = do {m <- nIe l; pure (m, inp)}
 mguI _ _ i0@(Ix l _) i1@Ix{} = throwError $ UI l i0 i1
 mguI _ inp i0@(IEVar _ i) (IEVar _ j) | i == j = pure (i0, inp)
 mguI RF inp (IEVar l _) (IEVar _ _) = do {m <- nIe l; pure (m, inp)}
+mguI RF inp i@IEVar{} j@Ix{} = pure (i, inp)
+mguI RF inp i@Ix{} j@IEVar{} = mguI RF inp j i
 mguI _ _ i0@(IEVar l _) i1@IEVar{} = throwError $ UI l i0 i1
 mguI _ inp i0@(IVar _ i) (IVar _ j) | i == j = pure (i0, inp)
 mguI _ inp iix@(IVar l (Nm _ (U i) _)) ix | i `IS.member` occI ix = throwError $ OI l iix ix
