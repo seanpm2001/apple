@@ -82,6 +82,7 @@ lassoc CatE   = False
 lassoc Sr     = True
 lassoc Sl     = True
 lassoc Xor    = True
+lassoc Or = False; lassoc And = False
 lassoc Filt = False; lassoc Ices = False
 lassoc Fold = False; lassoc Succ = False
 lassoc Eq = False; lassoc Neq = False
