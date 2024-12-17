@@ -35,6 +35,7 @@ import           Ty.Clone
 import           U
 
 infixl 7 \-
+infixl 6 @@
 
 data TySt a = TySt { maxU :: !Int, staEnv, polyEnv :: IM.IntMap (T ()), varConstr :: IM.IntMap (C, a) }
 
@@ -195,6 +196,8 @@ infixr 4 !>
 
 (\-) :: Subst a -> Int -> Subst a
 (\-) (Subst ts is ss) u = Subst (IM.delete u ts) is ss
+
+s@@t= aT (void s) t
 
 aT :: Subst a -> T a -> T a
 aT s (Arr sh ty) = Arr (shSubst s sh) (aT s ty)
@@ -957,19 +960,19 @@ tyE s (Lam _ nϵ e) = do
 tyE s (Let _ (n, e') e) = do
     (e'Res, s') <- tyE s e'
     let e'Ty = eAnn e'Res
-    addStaEnv n (aT (void s') e'Ty)
+    addStaEnv n (s'@@e'Ty)
     (eRes, s'') <- tyE s' e
     pure (Let (eAnn eRes) (n { loc = e'Ty }, e'Res) eRes, s'')
 tyE s (Def _ (n, e') e) = do
     (e'Res, s') <- tyE s e'
     let e'Ty = eAnn e'Res
-    modify (addPolyEnv n (aT (void s') e'Ty))
+    modify (addPolyEnv n (s'@@e'Ty))
     (eRes, s'') <- tyE s' e
     pure (Def (eAnn eRes) (n { loc = e'Ty }, e'Res) eRes, s'')
 tyE s (LLet _ (n, e') e) = do
     (e'Res, s') <- tyE s e'
     let e'Ty = eAnn e'Res
-    addStaEnv n (aT (void s') e'Ty)
+    addStaEnv n (s'@@e'Ty)
     (eRes, s'') <- tyE s' e
     pure (LLet (eAnn eRes) (n { loc = e'Ty }, e'Res) eRes, s'')
 tyE s e@(ALit l es) = do
