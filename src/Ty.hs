@@ -935,16 +935,27 @@ checkClass s i c =
 
 tyClosed :: Int -> E a -> Either (TyE a) (E (T ()), [(Nm a, C)], Int)
 tyClosed u e = do
-    ((eS, scs), i) <- runTyM u (do { (e', s) <- tyE mempty e; cvs <- gets varConstr; scs <- liftEither $ catMaybes <$> traverse (uncurry$checkClass s) (IM.toList cvs); pure (rwArr.aT (void s)<$>e', scs) })
+    ((eS, scs), i) <- runTyM u (do { (e', s) <- tyE mempty e; cvs <- gets varConstr; scs <- liftEither $ catMaybes <$> traverse (uncurry$checkClass s) (IM.toList cvs); pure (rwArr.(s@@)<$>e', scs) })
     let vs = occ (eAnn eS); scs' = filter (\(Nm _ (U iϵ) _, _) -> iϵ `IS.member` vs) scs
     chkE (eAnn eS) $> (eS, nubOrd scs', i)
 
 tyE :: Subst a -> E a -> TyM a (E (T ()), Subst a)
-tyE s (EApp _ (EApp _ (EApp _ (Builtin l IRange) (ILit _ b)) (ILit _ e)) (ILit _ si)) = do
-    let n = fromInteger ((e-b+si) `quot` si)
-    when (n<0) $ throwError (NegIx l n)
-    let arrTy = vV (Ix () n) I
-    pure (EApp arrTy (EApp (I ~> arrTy) (EApp (I ~> I ~> arrTy) (Builtin (I ~> I ~> I ~> arrTy) IRange) (ILit I b)) (ILit I e)) (ILit I si), s)
+tyE s (EApp _ (EApp _ (EApp _ (Builtin l IRange) lb) ub) n) = do
+    (lbϵ,s0) <- tyE s lb; (ubϵ,s1) <- tyE s0 ub; (nϵ,s2) <- tyE s1 n
+    let lbTy0=eAnn lbϵ; ubTy0=eAnn ubϵ; nTy0=eAnn nϵ
+        iLoc sϵ t lϵ = second void$iv sϵ (aT sϵ (t$>eAnn lϵ))
+        (s3,lbTy) = iLoc s2 lbTy0 lb; (s4,ubTy) = iLoc s3 ubTy0 ub; (s5,niTy) = iLoc s4 nTy0 n
+    m <- case (lbTy, ubTy, niTy) of
+        (Li (Ix _ lbi), Li (Ix _ ubi), Li (Ix _ ni)) -> do
+            let m=(ubi-lbi) `quot` ni+1
+            when (m<0) $ throwError (NegIx l m)
+            pure (Ix () m)
+        _ -> ftie
+    let arrTy = vV m I
+    pure (EApp arrTy (EApp (nTy0 ~> arrTy) (EApp (ubTy0 ~> nTy0 ~> arrTy) (Builtin (lbTy0 ~> ubTy0 ~> nTy0 ~> arrTy) IRange) lbϵ) ubϵ) nϵ, s5)
+  where iv sϵ (IZ i nm)   = let t=Li i in (iTS nm t sϵ, t)
+        iv sϵ t@(TVar nm) = (iTS nm I sϵ, t)
+        iv sϵ _           = (sϵ, I)
 tyE s (FLit _ x) = pure (FLit F x, s)
 tyE s (BLit _ x) = pure (BLit B x, s)
 tyE s (ILit l m) = do
